@@ -11,7 +11,7 @@ class JWT {
   //生成
   generateToken() {
     let cert = fs.readFileSync(
-      path.resolve(__dirname, '../pem/pkcs8_rsa_private_key.pem'),
+      path.resolve(__dirname, '../pem/private_pkcs8.pem'),
     ) //私钥 可以自己生成
     let token = jwt.sign(
       {
