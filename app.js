@@ -1,16 +1,22 @@
 const path = require('path')
 const Koa = require('koa')
+const bodyParser = require('koa-bodyparser')
 const config = require('./config/config')
 const static = require('koa-static')
 const api = require('./api')
-const JWT = require('./utils/jwt')
+const mongoose = require('mongoose')
+mongoose.connect(
+  'mongodb://kirisakiaria:ihSvydZrQQW9RSud@localhost:27017/name_generator',
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  },
+)
 
 const app = new Koa()
 
-// const jwt = new JWT(ctx.request.header.authorization)
-// const res = jwt.verifyToken()
-
 app.use(static(path.join(__dirname) + '/public/'))
+app.use(bodyParser())
 
 app.use(api.routes())
 

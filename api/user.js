@@ -1,23 +1,14 @@
+const JWT = require('../utils/jwt')
 const Router = require('@koa/router')
-const router = new Router({ prefix: '/account' })
+const router = new Router({ prefix: '/user' })
 
-const delay = async time => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      console.log('延迟执行')
-      resolve()
-    }, time)
-  })
-}
-
-router.post('/', async ctx => {
-  const { type, number } = ctx.query
-  const nameList = ['深淵道化', '失踪領域', '氷雪戦機']
-  const randomIndex = Math.round(Math.random() * 2)
-  //await delay(5000)
+router.post('/login', async ctx => {
+  const { tel, password } = ctx.request.body
+  const jwt = new JWT({ tel, password })
+  const res = jwt.generateToken()
   ctx.body = {
     code: 1000,
-    data: { name: nameList[randomIndex] },
+    data: res,
   }
 })
 

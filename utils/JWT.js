@@ -15,8 +15,7 @@ class JWT {
     ) //私钥 可以自己生成
     let token = jwt.sign(
       {
-        username: this.data.username,
-        roleId: this.data.roleId,
+        tel: this.data.tel,
       },
       cert,
       {
@@ -45,8 +44,7 @@ class JWT {
       if (result) {
         res = {
           code: '1000',
-          username: result.username,
-          roleId: result.roleId,
+          username: result.tel,
         }
       }
     } catch (e) {
