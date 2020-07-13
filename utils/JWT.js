@@ -3,7 +3,7 @@ const path = require('path')
 const jwt = require('jsonwebtoken')
 
 class JWT {
-  //生成时初始化传username，校验时初始化传token
+  //生成时初始化传tel，校验时初始化传token
   constructor(data) {
     this.data = data
   }
@@ -15,7 +15,7 @@ class JWT {
     ) //私钥 可以自己生成
     let token = jwt.sign(
       {
-        tel: this.data.tel,
+        tel: this.data,
       },
       cert,
       {
