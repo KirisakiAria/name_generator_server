@@ -32,7 +32,7 @@ class JWT {
     return token
   }
 
-  //验证，返回解包的username
+  //验证，返回解包的tel
   verifyToken() {
     let token = this.data
     let cert = fs.readFileSync(
@@ -44,12 +44,14 @@ class JWT {
       if (result) {
         res = {
           code: '1000',
-          username: result.tel,
+          message: '身份校验成功',
+          tel: result.tel,
         }
       }
     } catch (e) {
       res = {
-        message: '验证token出错',
+        code: '2000',
+        message: '登陆状态失效，请重新登录',
       }
     }
     return res

@@ -14,7 +14,6 @@ mongoose.connect(
 )
 
 const app = new Koa()
-
 app.use(static(path.join(__dirname) + '/public/'))
 app.use(bodyParser())
 

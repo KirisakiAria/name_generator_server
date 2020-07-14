@@ -7,7 +7,7 @@ router.get('/', async ctx => {
   const nameList = ['深淵道化', '失踪領域', '氷雪戦機']
   const randomIndex = Math.round(Math.random() * 2)
   ctx.body = {
-    code: 1000,
+    code: '1000',
     data: { name: nameList[randomIndex] },
   }
 })
