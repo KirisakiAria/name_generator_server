@@ -1,7 +1,7 @@
 const JWT = require('../utils/jwt')
 const Router = require('@koa/router')
 const userModel = require('../model/User')
-const router = new Router({ prefix: '/user' })
+const router = new Router()
 
 router.post('/login', async ctx => {
   const { tel, password } = ctx.request.body
@@ -22,7 +22,7 @@ router.post('/login', async ctx => {
       }
     } else {
       ctx.body = {
-        code: '9001',
+        code: '3001',
         message: '手机号或密码错误',
       }
     }

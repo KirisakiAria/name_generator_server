@@ -16,7 +16,15 @@ mongoose.connect(
 const app = new Koa()
 app.use(static(path.join(__dirname) + '/public/'))
 app.use(bodyParser())
-
+app.use(async (ctx, next) => {
+  await next()
+  if (parseInt(ctx.status) === 404) {
+    ctx.body = {
+      code: '9002',
+      message: '请求的接口不存在',
+    }
+  }
+})
 app.use(api.routes())
 
 module.exports = app
