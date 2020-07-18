@@ -9,10 +9,10 @@ const sendcode = require('./sendcode')
 const router = new Router({ prefix: `/api/${config.apiVersion}` })
 
 //验证
-//router.use(verifyAppBaseInfo, verifyLogin)
-router.use(name.routes())
-router.use(login.routes())
-router.use(register.routes())
-router.use(sendcode.routes())
+//router.use(verifyAppBaseInfo)
+router.use(name.routes()).use(router.allowedMethods())
+router.use(login.routes()).use(router.allowedMethods())
+router.use(register.routes()).use(router.allowedMethods())
+router.use(sendcode.routes()).use(router.allowedMethods())
 
 module.exports = router

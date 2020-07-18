@@ -1,9 +1,9 @@
 const JWT = require('../utils/jwt')
 const Router = require('@koa/router')
 const userModel = require('../model/User')
-const router = new Router()
+const router = new Router({ prefix: '/login' })
 
-router.post('/login', async ctx => {
+router.post('/', async ctx => {
   const { tel, password } = ctx.request.body
   try {
     const user = await userModel.findOne({ tel })
@@ -15,8 +15,8 @@ router.post('/login', async ctx => {
         message: '请求成功',
         data: {
           tel: user.tel,
-          avatar: user.avatar,
-          username: user.username,
+          avatar: user.avatar || '/avatar.png',
+          username: '彼岸自在',
           token,
         },
       }

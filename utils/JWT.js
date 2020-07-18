@@ -10,10 +10,10 @@ class JWT {
 
   //生成
   generateToken() {
-    let cert = fs.readFileSync(
+    const cert = fs.readFileSync(
       path.resolve(__dirname, '../pem/private_pkcs8.pem'),
     ) //私钥 可以自己生成
-    let token = jwt.sign(
+    const token = jwt.sign(
       {
         tel: this.data,
       },
@@ -34,13 +34,13 @@ class JWT {
 
   //验证，返回解包的tel
   verifyToken() {
-    let token = this.data
-    let cert = fs.readFileSync(
+    const token = this.data
+    const cert = fs.readFileSync(
       path.join(__dirname, '../pem/rsa_public_key.pem'),
     ) //公钥 可以自己生成
     let res
     try {
-      let result = jwt.verify(token, cert, { algorithms: ['RS256'] })
+      const result = jwt.verify(token, cert, { algorithms: ['RS256'] })
       if (result) {
         res = {
           code: '1000',

@@ -2,11 +2,13 @@ const JWT = require('../utils/jwt')
 const config = require('../config/config')
 
 const verifyAppBaseInfo = async (ctx, next) => {
+  //验证app名、包名、密钥
   if (
     ctx.request.header.appname === config.appName &&
-    ctx.request.header.packagename === config.packageName
+    ctx.request.header.packagename === config.packageName &&
+    ctx.request.header.secret === config.secret
   ) {
-    next()
+    await next()
   } else {
     ctx.body = {
       code: '9001',
