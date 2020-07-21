@@ -2,11 +2,11 @@ const fs = require('fs')
 const Router = require('@koa/router')
 const UserModel = require('../model/User')
 const SMSModel = require('../model/SMS')
-const router = new Router({ prefix: '/register' })
+const router = new Router({ prefix: '/changepassword' })
 
 router.post('/', async ctx => {
   const writerStream = fs.createWriteStream(
-    process.cwd() + '/logs/register.log',
+    process.cwd() + '/logs/change_password.log',
     {
       flags: 'a',
     },
@@ -20,10 +20,10 @@ router.post('/', async ctx => {
 
   try {
     const userDoc = await UserModel.findOne({ tel })
-    if (userDoc) {
+    if (!userDoc) {
       ctx.body = {
         code: '3000',
-        message: '用户已存在，请登录',
+        message: '用户不存在，请注册',
       }
     } else {
       const smsDoc = await SMSModel.findOne({ tel })
@@ -38,20 +38,22 @@ router.post('/', async ctx => {
           message: '验证码错误',
         }
       } else {
-        const count = await UserModel.count()
-        const newUser = new UserModel({
-          uid: count + 1,
-          tel,
-          password,
-          avatar: '/avatar.png',
-          usernmae: '彼岸自在',
-        })
-        await newUser.save()
-        writerStream.write(`用户${tel}在${new Date()}注册,`, 'UTF8')
-        writerStream.end()
-        ctx.body = {
-          code: '1000',
-          message: '注册成功',
+        const result = await UserModel.updateOne(
+          { tel },
+          { $set: { password } },
+        )
+        if (result.ok == 1) {
+          writerStream.write(`用户${tel}在${new Date()}修改密码,`, 'UTF8')
+          writerStream.end()
+          ctx.body = {
+            code: '1000',
+            message: '修改成功',
+          }
+        } else {
+          ctx.body = {
+            code: '9000',
+            message: '请求失败',
+          }
         }
       }
     }

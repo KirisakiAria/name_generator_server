@@ -84,17 +84,31 @@ const sendCode = async (tel, ctx) => {
 }
 
 router.post('/', async ctx => {
-  const { tel } = ctx.request.body
+  const { tel, change } = ctx.request.body
   try {
-    const user = await UserModel.findOne({ tel })
-    if (user) {
-      ctx.body = {
-        code: '3000',
-        message: '用户已存在',
+    //有change参数代表修改密码
+    if (change) {
+      const user = await UserModel.findOne({ tel })
+      if (!user) {
+        ctx.body = {
+          code: '3000',
+          message: '用户不存在',
+        }
+      } else {
+        const res = await sendCode(tel, ctx)
+        ctx.body = res
       }
     } else {
-      const res = await sendCode(tel, ctx)
-      ctx.body = res
+      const user = await UserModel.findOne({ tel })
+      if (user) {
+        ctx.body = {
+          code: '3000',
+          message: '用户已存在',
+        }
+      } else {
+        const res = await sendCode(tel, ctx)
+        ctx.body = res
+      }
     }
   } catch (e) {
     console.log(e)

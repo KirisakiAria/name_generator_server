@@ -15,8 +15,9 @@ router.post('/', async ctx => {
         message: '请求成功',
         data: {
           tel: user.tel,
-          avatar: user.avatar || '/avatar.png',
-          username: '彼岸自在',
+          avatar: user.avatar,
+          username: user.username,
+          uid: user.uid,
           token,
         },
       }
