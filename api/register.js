@@ -44,7 +44,7 @@ router.post('/', async ctx => {
           tel,
           password,
           avatar: '/avatar.png',
-          usernmae: '彼岸自在',
+          username: '彼岸自在',
         })
         await newUser.save()
         writerStream.write(`用户${tel}在${new Date()}注册,`, 'UTF8')
