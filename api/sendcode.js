@@ -56,7 +56,7 @@ const sendCode = async (tel, ctx) => {
         } else {
           return {
             code: '9000',
-            message: '请求失败',
+            message: '请求错误',
           }
         }
       }
