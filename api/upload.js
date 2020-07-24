@@ -7,7 +7,7 @@ router.post('/', upload.single('file'), ctx => {
     code: '1000',
     message: '上传成功',
     data: {
-      url: ctx.file.path.replace('public', ''),
+      url: ctx.file.path.replace('public\\', '/'),
     },
   }
 })

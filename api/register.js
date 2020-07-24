@@ -2,6 +2,7 @@ const fs = require('fs')
 const Router = require('@koa/router')
 const UserModel = require('../model/User')
 const SMSModel = require('../model/SMS')
+const timeFormatter = require('../utils/formatter').time
 const router = new Router({ prefix: '/register' })
 
 router.post('/', async ctx => {
@@ -44,6 +45,7 @@ router.post('/', async ctx => {
           tel,
           password,
           avatar: '/avatar.png',
+          date: timeFormatter(new Date()),
           username: '彼岸自在',
         })
         await newUser.save()

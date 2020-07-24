@@ -12,7 +12,6 @@ router.put('/avatar', async ctx => {
         message: '用户不存在',
       }
     } else {
-      console.log(tel, avatar)
       const result = await UserModel.updateOne({ tel }, { $set: { avatar } })
       if (result.ok == 1) {
         ctx.body = {

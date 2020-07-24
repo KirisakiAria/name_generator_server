@@ -18,6 +18,7 @@ router.post('/', async ctx => {
           avatar: user.avatar,
           username: user.username,
           uid: user.uid,
+          date: user.date,
           token,
         },
       }
