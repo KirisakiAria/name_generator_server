@@ -4,12 +4,12 @@ const userModel = require('../model/User')
 const router = new Router({ prefix: '/login' })
 
 router.post('/', async ctx => {
-  const { tel, password } = ctx.request.body
+  const { username, password, authCode } = ctx.request.body
   try {
-    const user = await userModel.findOne({ tel })
+    const user = await userModel.findOne({ username })
     if (user && user.password === password) {
-      const jwt = new JWT(tel)
-      const token = jwt.generateToken(tel)
+      const jwt = new JWT({ username, password })
+      const token = jwt.generateToken()
       ctx.body = {
         code: '1000',
         message: '请求成功',
@@ -25,7 +25,7 @@ router.post('/', async ctx => {
     } else {
       ctx.body = {
         code: '3001',
-        message: '手机号或密码错误',
+        message: '帐号或密码错误',
       }
     }
   } catch (e) {

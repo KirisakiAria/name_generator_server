@@ -1,6 +1,6 @@
 const Router = require('@koa/router')
 const config = require('../config/config')
-const name = require('./name')
+const word = require('./word')
 const login = require('./login')
 const register = require('./register')
 const changePassword = require('./change_password')
@@ -13,7 +13,7 @@ const router = new Router({ prefix: `/api/${config.apiVersion}` })
 
 //验证
 //router.use(verifyAppBaseInfo)
-router.use(name.routes()).use(router.allowedMethods())
+router.use(word.routes()).use(router.allowedMethods())
 router.use(login.routes()).use(router.allowedMethods())
 router.use(register.routes()).use(router.allowedMethods())
 router.use(changePassword.routes()).use(router.allowedMethods())
