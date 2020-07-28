@@ -25,26 +25,43 @@ router.post('/', async ctx => {
   }
 })
 
-const findData = (type, number) => {
+const selectModel = (type, number) => {
   if (type == '中国风') {
     switch (number) {
-      case '1':
+      case 1:
         break
-      case '2':
+      case 2:
         break
-      case '3':
+      case 3:
         break
-      case '4':
+      case 4:
         break
     }
   } else {
+    switch (number) {
+      case 1:
+        model = JapaneseTwoWordModel
+        break
+      case 2:
+        model = JapaneseTwoWordModel
+        break
+      case 3:
+        model = JapaneseThreeWordModel
+        break
+      case 4:
+        model = JapaneseFourWordModel
+        break
+    }
   }
+  return model
 }
 
 router.post('/add', async ctx => {
   try {
     const { word, type, number } = ctx.request.body
-    console.log(word, type, number)
+    const Model = selectModel(type, number)
+    const wordObj = new Model({ word })
+    await wordObj.save()
     ctx.body = {
       code: '1000',
       message: '添加成功',
