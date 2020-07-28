@@ -1,8 +1,8 @@
 const Router = require('@koa/router')
 const router = new Router({ prefix: '/word' })
-const JapaneseFourIdiomModel = require('../model/JapaneseFourIdiom')
-const JapaneseThreeIdiomModel = require('../model/JapaneseThreeIdiom')
-const JapaneseTwoIdiomModel = require('../model/JapaneseTwoIdiom')
+const JapaneseFourWordModel = require('../model/JapaneseFourWord')
+const JapaneseThreeWordModel = require('../model/JapaneseThreeWord')
+const JapaneseTwoWordModel = require('../model/JapaneseTwoWord')
 
 router.post('/', async ctx => {
   try {
@@ -40,5 +40,22 @@ const findData = (type, number) => {
   } else {
   }
 }
+
+router.post('/add', async ctx => {
+  try {
+    const { word, type, number } = ctx.request.body
+    console.log(word, type, number)
+    ctx.body = {
+      code: '1000',
+      message: '添加成功',
+    }
+  } catch (e) {
+    console.log(e)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
 
 module.exports = router
