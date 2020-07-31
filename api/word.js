@@ -3,6 +3,7 @@ const router = new Router({ prefix: '/word' })
 const JapaneseFourWordModel = require('../model/JapaneseFourWord')
 const JapaneseThreeWordModel = require('../model/JapaneseThreeWord')
 const JapaneseTwoWordModel = require('../model/JapaneseTwoWord')
+const { verifyLogin } = require('../utils/verify')
 
 router.post('/', async ctx => {
   try {
@@ -56,7 +57,7 @@ const selectModel = (type, number) => {
   return model
 }
 
-router.post('/add', async ctx => {
+router.post('/add', verifyLogin, async ctx => {
   try {
     const { word, type, number } = ctx.request.body
     const Model = selectModel(type, number)

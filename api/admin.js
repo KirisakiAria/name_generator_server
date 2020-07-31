@@ -1,24 +1,25 @@
 const JWT = require('../utils/jwt')
 const Router = require('@koa/router')
-const userModel = require('../model/User')
-const router = new Router({ prefix: '/login' })
+const AdminModel = require('../model/Admin')
+const router = new Router({ prefix: '/admin' })
 
-router.post('/', async ctx => {
+router.post('/login', async ctx => {
   const { username, password, authCode } = ctx.request.body
   try {
-    const user = await userModel.findOne({ username })
+    const user = await AdminModel.findOne({ username })
     if (user && user.password === password) {
-      const jwt = new JWT({ username, password })
+      const jwt = new JWT({
+        user: username,
+        role: 1,
+      })
       const token = jwt.generateToken()
       ctx.body = {
         code: '1000',
         message: '请求成功',
         data: {
-          tel: user.tel,
           avatar: user.avatar,
           username: user.username,
           uid: user.uid,
-          date: user.date,
           token,
         },
       }

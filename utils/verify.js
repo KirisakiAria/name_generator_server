@@ -1,4 +1,6 @@
 const JWT = require('../utils/jwt')
+const AdminModel = require('../model/Admin')
+const UserModel = require('../model/User')
 const config = require('../config/config')
 
 const verifyAppBaseInfo = async (ctx, next) => {
@@ -19,21 +21,41 @@ const verifyAppBaseInfo = async (ctx, next) => {
 
 //登陆状态判断
 const verifyLogin = async (ctx, next) => {
-  const url = ctx.request.originalUrl
-  if (!url.includes('login')) {
-    const jwt = new JWT(ctx.request.header.authorization)
-    const res = jwt.verifyToken()
-    if (res.code == '1000') {
-      ctx.tel = res.tel
-      await next()
+  if (!ctx.request.header.authorization) {
+    ctx.body = {
+      code: '2000',
+      message: '登陆状态失效，请重新登录',
+    }
+  }
+  const jwt = new JWT(ctx.request.header.authorization)
+  const res = jwt.verifyToken()
+  if (res.code == '1000') {
+    if (res.role == 1) {
+      const user = await UserModel.findOne({ username: res.user })
+      if (user) {
+        await next()
+      } else {
+        ctx.body = {
+          code: '2001',
+          message: '无此用户信息，请重新登录',
+        }
+      }
     } else {
-      ctx.body = {
-        code: res.code,
-        message: res.message,
+      const user = await UserModel.findOne({ tel: res.user })
+      if (user) {
+        await next()
+      } else {
+        ctx.body = {
+          code: '2001',
+          message: '无此用户信息，请重新登录',
+        }
       }
     }
   } else {
-    await next()
+    ctx.body = {
+      code: res.code,
+      message: res.message,
+    }
   }
 }
 

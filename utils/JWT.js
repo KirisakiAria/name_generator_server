@@ -15,7 +15,8 @@ class JWT {
     ) //私钥 可以自己生成
     const token = jwt.sign(
       {
-        tel: this.data,
+        user: this.data.user,
+        role: this.data.role,
       },
       cert,
       {
@@ -45,7 +46,8 @@ class JWT {
         res = {
           code: '1000',
           message: '身份校验成功',
-          tel: result.tel,
+          user: result.user,
+          role: result.role,
         }
       }
     } catch (e) {

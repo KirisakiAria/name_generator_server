@@ -11,8 +11,11 @@ router.post('/login', async ctx => {
   try {
     const user = await UserModel.findOne({ tel })
     if (user && user.password === password) {
-      const jwt = new JWT(tel)
-      const token = jwt.generateToken(tel)
+      const jwt = new JWT({
+        user: tel,
+        role: 2,
+      })
+      const token = jwt.generateToken()
       ctx.body = {
         code: '1000',
         message: '请求成功',
@@ -90,6 +93,52 @@ router.post('/register', async ctx => {
           code: '1000',
           message: '注册成功',
         }
+      }
+    }
+  } catch (e) {
+    console.log(e)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
+router.post('/getdata', async ctx => {
+  const { tel } = ctx.request.body
+  try {
+    const jwt = new JWT(ctx.request.header.authorization)
+    const res = jwt.verifyToken()
+    if (res.user === tel) {
+      const user = await UserModel.findOne({ tel })
+      if (user) {
+        const jwt = new JWT({
+          user: tel,
+          role: 2,
+        })
+        const token = jwt.generateToken()
+        ctx.body = {
+          code: '1000',
+          message: '请求成功',
+          data: {
+            tel: user.tel,
+            avatar: user.avatar,
+            username: user.username,
+            uid: user.uid,
+            date: user.date,
+            token,
+          },
+        }
+      } else {
+        ctx.body = {
+          code: '2001',
+          message: '无此用户信息，请重新登录',
+        }
+      }
+    } else {
+      ctx.body = {
+        code: '2000',
+        message: '登陆状态失效，请重新登录',
       }
     }
   } catch (e) {
