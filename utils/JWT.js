@@ -2,6 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const jwt = require('jsonwebtoken')
 
+//JWT验证
 class JWT {
   //生成时初始化传tel，校验时初始化传token
   constructor(data) {

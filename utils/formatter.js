@@ -1,3 +1,5 @@
+//格式化相关工具代码
+
 const time = dateObj => {
   const year = padZero(dateObj.getFullYear())
   const month = padZero(dateObj.getMonth() + 1)

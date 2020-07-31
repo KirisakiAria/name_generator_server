@@ -3,8 +3,8 @@ const AdminModel = require('../model/Admin')
 const UserModel = require('../model/User')
 const config = require('../config/config')
 
+//验证app名、包名、密钥
 const verifyAppBaseInfo = async (ctx, next) => {
-  //验证app名、包名、密钥
   if (
     ctx.request.header.appname === config.appName &&
     ctx.request.header.packagename === config.packageName &&
@@ -19,7 +19,7 @@ const verifyAppBaseInfo = async (ctx, next) => {
   }
 }
 
-//登陆状态判断
+//验证登录状态
 const verifyLogin = async (ctx, next) => {
   if (!ctx.request.header.authorization) {
     ctx.body = {
@@ -31,7 +31,7 @@ const verifyLogin = async (ctx, next) => {
   const res = jwt.verifyToken()
   if (res.code == '1000') {
     if (res.role == 1) {
-      const user = await UserModel.findOne({ username: res.user })
+      const user = await AdminModel.findOne({ username: res.user })
       if (user) {
         await next()
       } else {

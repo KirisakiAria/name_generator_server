@@ -1,3 +1,4 @@
+const fs = require('fs')
 const Router = require('@koa/router')
 const router = new Router({ prefix: '/word' })
 const JapaneseFourWordModel = require('../model/JapaneseFourWord')
@@ -75,5 +76,65 @@ router.post('/add', verifyLogin, async ctx => {
     }
   }
 })
+
+router.get('/', async ctx => {
+  try {
+    const {
+      type,
+      number,
+      searchContent,
+      pageSize,
+      currentPage,
+    } = ctx.request.query
+    const Model = selectModel(type, Number.parseInt(number))
+    const pattern = new RegExp(searchContent, 'i')
+    list = await Model.find({ word: pattern })
+      .sort({ _id: -1 })
+      .skip(parseInt(pageSize) * parseInt(currentPage))
+      .limit(parseInt(pageSize))
+    total = await Model.find({ word: pattern }).countDocuments()
+    ctx.body = {
+      code: '1000',
+      message: '请求成功',
+      data: {
+        list,
+        total,
+      },
+    }
+  } catch (e) {
+    console.log(e)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
+router.post('/file', async ctx => {
+  try {
+    const { type, number, path } = ctx.request.body
+    //const Model = selectModel(type, Number.parseInt(number))
+    loadFile(path)
+    ctx.body = {
+      code: '1000',
+      message: '上传成功',
+    }
+  } catch (e) {
+    console.log(e)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
+const loadFile = path => {
+  const arr = []
+  const readStream = fs.createReadStream(`${process.cwd()}/public${path}`)
+  readStream.on('data', chunk => {
+    arr.push(chunk)
+  })
+  console.log(arr)
+}
 
 module.exports = router
