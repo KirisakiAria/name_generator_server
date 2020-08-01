@@ -131,13 +131,13 @@ router.post('/getdata', async ctx => {
         }
       } else {
         ctx.body = {
-          code: '2001',
+          code: '3008',
           message: '无此用户信息，请重新登录',
         }
       }
     } else {
       ctx.body = {
-        code: '2000',
+        code: '3007',
         message: '登陆状态失效，请重新登录',
       }
     }
@@ -230,8 +230,8 @@ router.put('/avatar', async ctx => {
         }
       } else {
         ctx.body = {
-          code: '9000',
-          message: '请求错误',
+          code: '2000',
+          message: '修改失败',
         }
       }
     }
@@ -262,8 +262,8 @@ router.put('/username', async ctx => {
         }
       } else {
         ctx.body = {
-          code: '9000',
-          message: '请求错误',
+          code: '2000',
+          message: '修改失败',
         }
       }
     }
