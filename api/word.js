@@ -14,13 +14,15 @@ const { verifyLogin } = require('../utils/verify')
 router.post('/', async ctx => {
   try {
     const { type, number } = ctx.request.body
-    const nameList = ['深淵道化', '失踪領域', '氷雪戦機']
-    const randomIndex = Math.round(Math.random() * 2)
+    const Model = selectModel(type, number)
+    const count = await Model.find().countDocuments()
+    const randomIndex = Math.floor(Math.random() * count)
+    const data = await Model.findOne().skip(randomIndex)
     ctx.body = {
       code: '1000',
       message: '请求成功',
       data: {
-        word: nameList[randomIndex],
+        word: data,
       },
     }
   } catch (e) {
