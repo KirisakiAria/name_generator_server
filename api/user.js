@@ -44,20 +44,19 @@ router.post('/login', async ctx => {
 })
 
 router.post('/register', async ctx => {
-  const writerStream = fs.createWriteStream(
-    process.cwd() + '/logs/register.log',
-    {
-      flags: 'a',
-    },
-  )
-
-  writerStream.on('error', function (err) {
-    console.log(err.stack)
-  })
-
-  const { tel, password, authCode } = ctx.request.body
-
   try {
+    const writerStream = fs.createWriteStream(
+      process.cwd() + '/logs/register.log',
+      {
+        flags: 'a',
+      },
+    )
+
+    writerStream.on('error', function (err) {
+      console.log(err.stack)
+    })
+
+    const { tel, password, authCode } = ctx.request.body
     const userDoc = await UserModel.findOne({ tel })
     if (userDoc) {
       ctx.body = {

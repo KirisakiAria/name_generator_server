@@ -53,7 +53,7 @@ class JWT {
       }
     } catch (e) {
       res = {
-        code: '2000',
+        code: '3007',
         message: '登陆状态失效，请重新登录',
       }
     }

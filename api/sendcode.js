@@ -7,15 +7,15 @@ const router = new Router({ prefix: '/sendcode' })
 const code = 666666
 
 const sendCode = async (tel, ctx) => {
-  const writerStream = fs.createWriteStream(process.cwd() + '/logs/sms.log', {
-    flags: 'a',
-  })
-  writerStream.on('error', function (err) {
-    console.log(err.stack)
-  })
-
-  const clientIp = ctx.req.connection.remoteAddress
   try {
+    const writerStream = fs.createWriteStream(process.cwd() + '/logs/sms.log', {
+      flags: 'a',
+    })
+    writerStream.on('error', function (err) {
+      console.log(err.stack)
+    })
+
+    const clientIp = ctx.req.connection.remoteAddress
     const smsDoc = await SMSModel.findOne({ tel })
     const smsDocs = await SMSModel.find({ clientIp })
     let sameIpSendCount = 0

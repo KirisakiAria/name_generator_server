@@ -1,20 +1,23 @@
 const fs = require('fs')
 const Router = require('@koa/router')
 const router = new Router({ prefix: '/word' })
+const JWT = require('../utils/jwt')
+const JapaneseFiveWordModel = require('../model/JapaneseFiveWord')
 const JapaneseFourWordModel = require('../model/JapaneseFourWord')
 const JapaneseThreeWordModel = require('../model/JapaneseThreeWord')
 const JapaneseTwoWordModel = require('../model/JapaneseTwoWord')
 const JapaneseOneWordModel = require('../model/JapaneseOneWord')
+const ChineseFiveWordModel = require('../model/ChineseFiveWord')
 const ChineseFourWordModel = require('../model/ChineseFourWord')
 const ChineseThreeWordModel = require('../model/ChineseThreeWord')
 const ChineseTwoWordModel = require('../model/ChineseTwoWord')
 const ChineseOneWordModel = require('../model/ChineseOneWord')
 const { verifyLogin } = require('../utils/verify')
 
-router.post('/', async ctx => {
+router.post('/random', async ctx => {
   try {
     const { type, number } = ctx.request.body
-    const Model = selectModel(type, number)
+    const Model = selectModel(type, Number.parseInt(number))
     const count = await Model.find().countDocuments()
     const randomIndex = Math.floor(Math.random() * count)
     const data = await Model.findOne().skip(randomIndex)
@@ -22,7 +25,7 @@ router.post('/', async ctx => {
       code: '1000',
       message: '请求成功',
       data: {
-        word: data,
+        word: data.word,
       },
     }
   } catch (e) {
@@ -49,6 +52,9 @@ const selectModel = (type, number) => {
       case 4:
         model = ChineseFourWordModel
         break
+      case 5:
+        model = ChineseFiveWordModel
+        break
     }
   } else {
     switch (number) {
@@ -64,31 +70,15 @@ const selectModel = (type, number) => {
       case 4:
         model = JapaneseFourWordModel
         break
+      case 5:
+        model = JapaneseFiveWordModel
+        break
     }
   }
   return model
 }
 
-router.post('/add', verifyLogin, async ctx => {
-  try {
-    const { word, type } = ctx.request.body
-    const Model = selectModel(type, word.length)
-    const wordObj = new Model({ word })
-    await wordObj.save()
-    ctx.body = {
-      code: '1000',
-      message: '添加成功',
-    }
-  } catch (e) {
-    console.log(e)
-    ctx.body = {
-      code: '9000',
-      message: '请求错误',
-    }
-  }
-})
-
-router.get('/', async ctx => {
+router.get('/', verifyLogin, async ctx => {
   try {
     const {
       type,
@@ -121,16 +111,67 @@ router.get('/', async ctx => {
   }
 })
 
-router.post('/file', async ctx => {
+router.post('/', verifyLogin, async ctx => {
   try {
+    const { word, type } = ctx.request.body
+    const Model = selectModel(type, word.length)
+    const existedWord = await Model.findOne({ word })
+    if (existedWord) {
+      ctx.body = {
+        code: '2001',
+        message: '词语已存在',
+      }
+    } else {
+      const wordObj = new Model({ word })
+      await wordObj.save()
+      ctx.body = {
+        code: '1000',
+        message: '添加成功',
+      }
+    }
+  } catch (e) {
+    console.log(e)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
+router.post('/file', verifyLogin, async ctx => {
+  try {
+    const writerStream = fs.createWriteStream(
+      process.cwd() + '/logs/upload.log',
+      {
+        flags: 'a',
+      },
+    )
     const { type, path } = ctx.request.body
     const data = await loadFile(path)
-    const arr = data.split(',')
+    const arr = unique(data.split(','))
     arr.forEach(async e => {
+      //最大长度暂定为5
+      if (e.length > 5) {
+        return false
+      }
       const Model = selectModel(type, e.length)
-      const word = new Model({ word: e })
-      await word.save()
+      const existedWord = await Model.findOne({ word: e })
+      //防止重复
+      if (existedWord) {
+        return false
+      } else {
+        const word = new Model({ word: e })
+        await word.save()
+      }
     })
+    const jwt = new JWT(ctx.request.header.authorization)
+    const res = jwt.verifyToken()
+    writerStream.write(
+      `用户：${res.user}在${new Date()}上传了${arr.length}个词语\n`,
+      'UTF8',
+    )
+    writerStream.end()
+    console.log(`用户：${res.user}在${new Date()}上传了${arr.length}个词语\n`)
     ctx.body = {
       code: '1000',
       message: '上传成功',
@@ -143,6 +184,12 @@ router.post('/file', async ctx => {
   }
 })
 
+//去重
+const unique = arr => {
+  return Array.from(new Set(arr))
+}
+
+//读取文件
 const loadFile = path => {
   return new Promise((resolve, reject) => {
     let data = ''
