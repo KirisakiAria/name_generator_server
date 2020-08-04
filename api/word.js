@@ -21,16 +21,20 @@ router.post('/random', async ctx => {
     const Model = selectModel(type, Number.parseInt(number))
     const count = await Model.find().countDocuments()
     const randomIndex = Math.floor(Math.random() * count)
-    const data = await Model.findOne().skip(randomIndex)
+    let data = await Model.findOne().skip(randomIndex)
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
-    // if (res.user) {
-    //   const result = await UserModal.updateOne({ tel: res.user })
-    //   if (result.ok != 1 || result.nModified != 1) {
-    //     console.log(`用户：${tel}添加查询记录失败`)
-    //   }
-    // }
-    console.log(data)
+    if (res.user) {
+      const result = await UserModal.updateOne({ tel: res.user })
+      if (result.ok != 1 || result.nModified != 1) {
+        console.log(`用户：${tel}添加查询记录失败`)
+      }
+    }
+    if (!data) {
+      data = {
+        word: '无',
+      }
+    }
     ctx.body = {
       code: '1000',
       message: '请求成功',
