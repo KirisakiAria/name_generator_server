@@ -138,6 +138,34 @@ router.post('/', verifyLogin, async ctx => {
   }
 })
 
+router.put('/:id', verifyLogin, async ctx => {
+  try {
+    const { word, type } = ctx.request.body
+    const Model = selectModel(type, word.length)
+    const result = await Model.updateOne(
+      { _id: ctx.params.id },
+      { $set: { word } },
+    )
+    if (result.ok == 1 && result.nModified == 1) {
+      ctx.body = {
+        code: '1000',
+        message: '修改成功',
+      }
+    } else {
+      ctx.body = {
+        code: '2000',
+        message: '修改失败',
+      }
+    }
+  } catch (e) {
+    console.log(e)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
 router.post('/file', verifyLogin, async ctx => {
   try {
     const writerStream = fs.createWriteStream(

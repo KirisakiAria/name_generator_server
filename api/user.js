@@ -187,7 +187,7 @@ router.post('/changepassword', async ctx => {
           { tel },
           { $set: { password } },
         )
-        if (result.ok == 1) {
+        if (result.ok == 1 && result.nModified == 1) {
           writerStream.write(`用户${tel}在${new Date()}修改密码,`, 'UTF8')
           writerStream.end()
           ctx.body = {
@@ -222,7 +222,7 @@ router.put('/avatar', async ctx => {
       }
     } else {
       const result = await UserModel.updateOne({ tel }, { $set: { avatar } })
-      if (result.ok == 1) {
+      if (result.ok == 1 && result.nModified == 1) {
         ctx.body = {
           code: '1000',
           message: '修改成功',
@@ -254,7 +254,7 @@ router.put('/username', async ctx => {
       }
     } else {
       const result = await UserModel.updateOne({ tel }, { $set: { username } })
-      if (result.ok == 1) {
+      if (result.ok == 1 && result.nModified == 1) {
         ctx.body = {
           code: '1000',
           message: '修改成功',

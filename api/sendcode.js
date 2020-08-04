@@ -48,7 +48,7 @@ const sendCode = async (tel, ctx) => {
             },
           },
         )
-        if (result.ok == 1) {
+        if (result.ok == 1 && result.nModified == 1) {
           return {
             code: '1000',
             message: '发送成功',
