@@ -12,6 +12,7 @@ const ChineseFourWordModel = require('../model/ChineseFourWord')
 const ChineseThreeWordModel = require('../model/ChineseThreeWord')
 const ChineseTwoWordModel = require('../model/ChineseTwoWord')
 const ChineseOneWordModel = require('../model/ChineseOneWord')
+const UserModal = require('../model/User')
 const { verifyLogin } = require('../utils/verify')
 
 router.post('/random', async ctx => {
@@ -21,6 +22,15 @@ router.post('/random', async ctx => {
     const count = await Model.find().countDocuments()
     const randomIndex = Math.floor(Math.random() * count)
     const data = await Model.findOne().skip(randomIndex)
+    const jwt = new JWT(ctx.request.header.authorization)
+    const res = jwt.verifyToken()
+    // if (res.user) {
+    //   const result = await UserModal.updateOne({ tel: res.user })
+    //   if (result.ok != 1 || result.nModified != 1) {
+    //     console.log(`用户：${tel}添加查询记录失败`)
+    //   }
+    // }
+    console.log(data)
     ctx.body = {
       code: '1000',
       message: '请求成功',
