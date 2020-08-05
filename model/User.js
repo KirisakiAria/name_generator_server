@@ -8,9 +8,16 @@ const userSchema = new Schema({
   tel: String,
   password: String,
   date: String,
+  vip_start: String,
+  vip_expiry: String,
+  vip: Boolean,
   history: [],
   favourites: [],
 })
+
+userSchema.statics.pushHistory = async function (tel, cb) {
+  return this.findOne({ tel }, cb)
+}
 
 const User = mongoose.model('User', userSchema)
 

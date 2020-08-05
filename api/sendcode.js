@@ -84,8 +84,8 @@ const sendCode = async (tel, ctx) => {
 }
 
 router.post('/', async ctx => {
-  const { tel, change } = ctx.request.body
   try {
+    const { tel, change } = ctx.request.body
     //有change参数代表修改密码
     if (change) {
       const user = await UserModel.findOne({ tel })

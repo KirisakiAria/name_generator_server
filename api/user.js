@@ -7,8 +7,8 @@ const timeFormatter = require('../utils/formatter').time
 const router = new Router({ prefix: '/user' })
 
 router.post('/login', async ctx => {
-  const { tel, password } = ctx.request.body
   try {
+    const { tel, password } = ctx.request.body
     const user = await UserModel.findOne({ tel })
     if (user && user.password === password) {
       const jwt = new JWT({
@@ -104,8 +104,8 @@ router.post('/register', async ctx => {
 })
 
 router.post('/getdata', async ctx => {
-  const { tel } = ctx.request.body
   try {
+    const { tel } = ctx.request.body
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
     if (res.user === tel) {
@@ -150,20 +150,19 @@ router.post('/getdata', async ctx => {
 })
 
 router.post('/changepassword', async ctx => {
-  const writerStream = fs.createWriteStream(
-    process.cwd() + '/logs/change_password.log',
-    {
-      flags: 'a',
-    },
-  )
-
-  writerStream.on('error', function (err) {
-    console.log(err.stack)
-  })
-
-  const { tel, password, authCode } = ctx.request.body
-
   try {
+    const writerStream = fs.createWriteStream(
+      process.cwd() + '/logs/change_password.log',
+      {
+        flags: 'a',
+      },
+    )
+
+    writerStream.on('error', function (err) {
+      console.log(err.stack)
+    })
+
+    const { tel, password, authCode } = ctx.request.body
     const userDoc = await UserModel.findOne({ tel })
     if (!userDoc) {
       ctx.body = {
@@ -211,9 +210,183 @@ router.post('/changepassword', async ctx => {
   }
 })
 
-router.put('/avatar', async ctx => {
-  const { tel, avatar } = ctx.request.body
+router.get('/history', async ctx => {
   try {
+    const jwt = new JWT(ctx.request.header.authorization)
+    const res = jwt.verifyToken()
+    if (res.user) {
+      const user = await UserModel.findOne({ tel: res.user })
+      if (user?.vip) {
+        ctx.body = {
+          code: '1000',
+          message: '请求成功',
+          data: {
+            list: user.history,
+          },
+        }
+      } else if (!user?.vip) {
+        ctx.body = {
+          code: '1000',
+          message: '请求成功',
+          data: {
+            list: user.history.slice(0, 30),
+          },
+        }
+      } else {
+        ctx.body = {
+          code: '3008',
+          message: '无此用户信息，请重新登录',
+        }
+      }
+    } else {
+      ctx.body = {
+        code: '3007',
+        message: '登陆状态失效，请重新登录',
+      }
+    }
+  } catch (e) {
+    console.log(e)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+router.post('/favourite', async ctx => {
+  try {
+    const { type, number, word } = ctx.request.body
+    const jwt = new JWT(ctx.request.header.authorization)
+    const res = jwt.verifyToken()
+    let success
+    if (res.user) {
+      await UserModel.findOne({ tel: res.user }, (err, res) => {
+        if (err) {
+          console.log(err)
+        } else {
+          if (res.favourites.length >= 500) {
+            success = false
+          } else {
+            const index = res.favourites.findIndex(e => e.word === word)
+            if (index == -1) {
+              res.favourites.unshift({
+                type,
+                number,
+                word,
+              })
+            }
+            res.save()
+            success = true
+          }
+        }
+        if (success) {
+          ctx.body = {
+            code: '1000',
+            message: '请求成功',
+          }
+        } else {
+          ctx.body = {
+            code: '2003',
+            message: '收藏数已满，请先取之前的收藏',
+          }
+        }
+      })
+    } else {
+      ctx.body = {
+        code: '3008',
+        message: '无此用户信息，请重新登录',
+      }
+    }
+  } catch (e) {
+    console.log(e)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
+router.get('/favourite', async ctx => {
+  try {
+    const jwt = new JWT(ctx.request.header.authorization)
+    const res = jwt.verifyToken()
+    if (res.user) {
+      const user = await UserModel.findOne({ tel: res.user })
+      if (user?.vip) {
+        ctx.body = {
+          code: '1000',
+          message: '请求成功',
+          data: {
+            list: user.favourites,
+          },
+        }
+      } else if (!user?.vip) {
+        ctx.body = {
+          code: '1000',
+          message: '请求成功',
+          data: {
+            list: user.favourites.slice(0, 30),
+          },
+        }
+      } else {
+        ctx.body = {
+          code: '3008',
+          message: '无此用户信息，请重新登录',
+        }
+      }
+    } else {
+      ctx.body = {
+        code: '3007',
+        message: '登陆状态失效，请重新登录',
+      }
+    }
+  } catch (e) {
+    console.log(e)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
+router.delete('/favourite/:word', async ctx => {
+  try {
+    const { word } = ctx.params
+    const jwt = new JWT(ctx.request.header.authorization)
+    const res = jwt.verifyToken()
+    if (res.user) {
+      await UserModel.findOne({ tel: res.user }, (err, res) => {
+        if (err) {
+          console.log(err)
+        } else {
+          const index = res.favourites.findIndex(e => e.word === word)
+          if (index != -1) {
+            res.favourites.splice(index, 1)
+          }
+          res.save()
+        }
+      })
+      ctx.body = {
+        code: '1000',
+        message: '请求成功',
+      }
+    } else {
+      ctx.body = {
+        code: '3008',
+        message: '无此用户信息，请重新登录',
+      }
+    }
+  } catch (e) {
+    console.log(e)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
+router.put('/avatar', async ctx => {
+  try {
+    const { tel, avatar } = ctx.request.body
     const userDoc = await UserModel.findOne({ tel })
     if (!userDoc) {
       ctx.body = {
@@ -244,8 +417,8 @@ router.put('/avatar', async ctx => {
 })
 
 router.put('/username', async ctx => {
-  const { tel, username } = ctx.request.body
   try {
+    const { tel, username } = ctx.request.body
     const userDoc = await UserModel.findOne({ tel })
     if (!userDoc) {
       ctx.body = {
