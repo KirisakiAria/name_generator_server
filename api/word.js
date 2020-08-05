@@ -13,9 +13,9 @@ const ChineseThreeWordModel = require('../model/ChineseThreeWord')
 const ChineseTwoWordModel = require('../model/ChineseTwoWord')
 const ChineseOneWordModel = require('../model/ChineseOneWord')
 const UserModel = require('../model/User')
-const { verifyLogin } = require('../utils/verify')
+const { verifyAppBaseInfo, verifyAdminLogin } = require('../utils/verify')
 
-router.post('/random', async ctx => {
+router.post('/random', verifyAppBaseInfo, async ctx => {
   try {
     const { type, number } = ctx.request.body
     const Model = selectModel(type, Number.parseInt(number))
@@ -65,6 +65,7 @@ router.post('/random', async ctx => {
 })
 
 const selectModel = (type, number) => {
+  let model
   if (type == '中国风') {
     switch (number) {
       case 1:
@@ -105,7 +106,7 @@ const selectModel = (type, number) => {
   return model
 }
 
-router.get('/', verifyLogin, async ctx => {
+router.get('/', verifyAdminLogin, async ctx => {
   try {
     const {
       type,
@@ -116,11 +117,11 @@ router.get('/', verifyLogin, async ctx => {
     } = ctx.request.query
     const Model = selectModel(type, Number.parseInt(number))
     const pattern = new RegExp(searchContent, 'i')
-    list = await Model.find({ word: pattern })
+    const list = await Model.find({ word: pattern })
       .sort({ _id: -1 })
       .skip(parseInt(pageSize) * parseInt(currentPage))
       .limit(parseInt(pageSize))
-    total = await Model.find({ word: pattern }).countDocuments()
+    const total = await Model.find({ word: pattern }).countDocuments()
     ctx.body = {
       code: '1000',
       message: '请求成功',
@@ -138,7 +139,7 @@ router.get('/', verifyLogin, async ctx => {
   }
 })
 
-router.post('/', verifyLogin, async ctx => {
+router.post('/', verifyAdminLogin, async ctx => {
   try {
     const { word, type } = ctx.request.body
     const Model = selectModel(type, word.length)
@@ -165,7 +166,7 @@ router.post('/', verifyLogin, async ctx => {
   }
 })
 
-router.put('/:id', verifyLogin, async ctx => {
+router.put('/:id', verifyAdminLogin, async ctx => {
   try {
     const { word, type } = ctx.request.body
     const Model = selectModel(type, word.length)
@@ -193,7 +194,7 @@ router.put('/:id', verifyLogin, async ctx => {
   }
 })
 
-router.post('/file', verifyLogin, async ctx => {
+router.post('/file', verifyAdminLogin, async ctx => {
   try {
     const writerStream = fs.createWriteStream(
       process.cwd() + '/logs/upload.log',
@@ -263,7 +264,7 @@ const loadFile = path => {
   })
 }
 
-router.delete('/:id', async ctx => {
+router.delete('/:id', verifyAdminLogin, async ctx => {
   try {
     const { type, number } = ctx.request.query
     const Model = selectModel(type, Number.parseInt(number))

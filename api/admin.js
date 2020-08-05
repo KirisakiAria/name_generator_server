@@ -5,7 +5,7 @@ const router = new Router({ prefix: '/admin' })
 
 router.post('/login', async ctx => {
   try {
-    const { username, password, authCode } = ctx.request.body
+    const { username, password } = ctx.request.body
     const user = await AdminModel.findOne({ username })
     if (user && user.password === password) {
       const jwt = new JWT({

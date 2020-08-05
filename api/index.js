@@ -5,17 +5,16 @@ const admin = require('./admin')
 const sendcode = require('./sendcode')
 const upload = require('./upload')
 const word = require('./word')
-const { verifyAppBaseInfo, verifyLogin } = require('../utils/verify')
+const application = require('./application')
 
 const router = new Router({ prefix: `/api/${config.apiVersion}` })
 
 //验证
-
-router.use(verifyAppBaseInfo)
 router.use(admin.routes()).use(user.allowedMethods())
 router.use(user.routes()).use(user.allowedMethods())
 router.use(sendcode.routes()).use(router.allowedMethods())
 router.use(upload.routes()).use(router.allowedMethods())
 router.use(word.routes()).use(router.allowedMethods())
+router.use(application.routes()).use(router.allowedMethods())
 
 module.exports = router

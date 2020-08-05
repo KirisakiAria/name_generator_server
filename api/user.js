@@ -5,8 +5,13 @@ const SMSModel = require('../model/SMS')
 const JWT = require('../utils/jwt')
 const timeFormatter = require('../utils/formatter').time
 const router = new Router({ prefix: '/user' })
+const {
+  verifyAppBaseInfo,
+  verifyAdminLogin,
+  verifyUserLogin,
+} = require('../utils/verify')
 
-router.post('/login', async ctx => {
+router.post('/login', verifyAppBaseInfo, async ctx => {
   try {
     const { tel, password } = ctx.request.body
     const user = await UserModel.findOne({ tel })
@@ -43,7 +48,7 @@ router.post('/login', async ctx => {
   }
 })
 
-router.post('/register', async ctx => {
+router.post('/register', verifyAppBaseInfo, async ctx => {
   try {
     const writerStream = fs.createWriteStream(
       process.cwd() + '/logs/register.log',
@@ -84,9 +89,12 @@ router.post('/register', async ctx => {
           avatar: '/avatar.png',
           date: timeFormatter(new Date()),
           username: '彼岸自在',
+          vip_start: 0,
+          vip_expiry: 0,
+          vip: false,
         })
         await newUser.save()
-        writerStream.write(`用户${tel}在${new Date()}注册,`, 'UTF8')
+        writerStream.write(`用户${tel}在${new Date()}注册\n`, 'UTF8')
         writerStream.end()
         ctx.body = {
           code: '1000',
@@ -103,7 +111,7 @@ router.post('/register', async ctx => {
   }
 })
 
-router.post('/getdata', async ctx => {
+router.post('/getdata', verifyAppBaseInfo, verifyUserLogin, async ctx => {
   try {
     const { tel } = ctx.request.body
     const jwt = new JWT(ctx.request.header.authorization)
@@ -149,7 +157,7 @@ router.post('/getdata', async ctx => {
   }
 })
 
-router.post('/changepassword', async ctx => {
+router.post('/changepassword', verifyAppBaseInfo, async ctx => {
   try {
     const writerStream = fs.createWriteStream(
       process.cwd() + '/logs/change_password.log',
@@ -187,7 +195,7 @@ router.post('/changepassword', async ctx => {
           { $set: { password } },
         )
         if (result.ok == 1 && result.nModified == 1) {
-          writerStream.write(`用户${tel}在${new Date()}修改密码,`, 'UTF8')
+          writerStream.write(`用户${tel}在${new Date()}修改密码\n`, 'UTF8')
           writerStream.end()
           ctx.body = {
             code: '1000',
@@ -210,7 +218,7 @@ router.post('/changepassword', async ctx => {
   }
 })
 
-router.get('/history', async ctx => {
+router.get('/history', verifyAppBaseInfo, verifyUserLogin, async ctx => {
   try {
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
@@ -252,7 +260,51 @@ router.get('/history', async ctx => {
     }
   }
 })
-router.post('/favourite', async ctx => {
+
+router.get('/favourite', verifyAppBaseInfo, verifyUserLogin, async ctx => {
+  try {
+    const jwt = new JWT(ctx.request.header.authorization)
+    const res = jwt.verifyToken()
+    if (res.user) {
+      const user = await UserModel.findOne({ tel: res.user })
+      if (user?.vip) {
+        ctx.body = {
+          code: '1000',
+          message: '请求成功',
+          data: {
+            list: user.favourites,
+          },
+        }
+      } else if (!user?.vip) {
+        ctx.body = {
+          code: '1000',
+          message: '请求成功',
+          data: {
+            list: user.favourites.slice(0, 30),
+          },
+        }
+      } else {
+        ctx.body = {
+          code: '3008',
+          message: '无此用户信息，请重新登录',
+        }
+      }
+    } else {
+      ctx.body = {
+        code: '3007',
+        message: '登陆状态失效，请重新登录',
+      }
+    }
+  } catch (e) {
+    console.log(e)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
+router.post('/favourite', verifyAppBaseInfo, verifyUserLogin, async ctx => {
   try {
     const { type, number, word } = ctx.request.body
     const jwt = new JWT(ctx.request.header.authorization)
@@ -305,27 +357,30 @@ router.post('/favourite', async ctx => {
   }
 })
 
-router.get('/favourite', async ctx => {
-  try {
-    const jwt = new JWT(ctx.request.header.authorization)
-    const res = jwt.verifyToken()
-    if (res.user) {
-      const user = await UserModel.findOne({ tel: res.user })
-      if (user?.vip) {
+router.delete(
+  '/favourite/:word',
+  verifyAppBaseInfo,
+  verifyUserLogin,
+  async ctx => {
+    try {
+      const { word } = ctx.params
+      const jwt = new JWT(ctx.request.header.authorization)
+      const res = jwt.verifyToken()
+      if (res.user) {
+        await UserModel.findOne({ tel: res.user }, (err, res) => {
+          if (err) {
+            console.log(err)
+          } else {
+            const index = res.favourites.findIndex(e => e.word === word)
+            if (index != -1) {
+              res.favourites.splice(index, 1)
+            }
+            res.save()
+          }
+        })
         ctx.body = {
           code: '1000',
           message: '请求成功',
-          data: {
-            list: user.favourites,
-          },
-        }
-      } else if (!user?.vip) {
-        ctx.body = {
-          code: '1000',
-          message: '请求成功',
-          data: {
-            list: user.favourites.slice(0, 30),
-          },
         }
       } else {
         ctx.body = {
@@ -333,58 +388,17 @@ router.get('/favourite', async ctx => {
           message: '无此用户信息，请重新登录',
         }
       }
-    } else {
+    } catch (e) {
+      console.log(e)
       ctx.body = {
-        code: '3007',
-        message: '登陆状态失效，请重新登录',
+        code: '9000',
+        message: '请求错误',
       }
     }
-  } catch (e) {
-    console.log(e)
-    ctx.body = {
-      code: '9000',
-      message: '请求错误',
-    }
-  }
-})
+  },
+)
 
-router.delete('/favourite/:word', async ctx => {
-  try {
-    const { word } = ctx.params
-    const jwt = new JWT(ctx.request.header.authorization)
-    const res = jwt.verifyToken()
-    if (res.user) {
-      await UserModel.findOne({ tel: res.user }, (err, res) => {
-        if (err) {
-          console.log(err)
-        } else {
-          const index = res.favourites.findIndex(e => e.word === word)
-          if (index != -1) {
-            res.favourites.splice(index, 1)
-          }
-          res.save()
-        }
-      })
-      ctx.body = {
-        code: '1000',
-        message: '请求成功',
-      }
-    } else {
-      ctx.body = {
-        code: '3008',
-        message: '无此用户信息，请重新登录',
-      }
-    }
-  } catch (e) {
-    console.log(e)
-    ctx.body = {
-      code: '9000',
-      message: '请求错误',
-    }
-  }
-})
-
-router.put('/avatar', async ctx => {
+router.put('/avatar', verifyAppBaseInfo, verifyUserLogin, async ctx => {
   try {
     const { tel, avatar } = ctx.request.body
     const userDoc = await UserModel.findOne({ tel })
@@ -416,7 +430,7 @@ router.put('/avatar', async ctx => {
   }
 })
 
-router.put('/username', async ctx => {
+router.put('/username', verifyAppBaseInfo, verifyUserLogin, async ctx => {
   try {
     const { tel, username } = ctx.request.body
     const userDoc = await UserModel.findOne({ tel })
@@ -438,6 +452,32 @@ router.put('/username', async ctx => {
           message: '修改失败',
         }
       }
+    }
+  } catch (e) {
+    console.log(e)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
+router.get('/', verifyAdminLogin, async ctx => {
+  try {
+    const { searchContent, pageSize, currentPage } = ctx.request.query
+    const pattern = new RegExp(searchContent, 'i')
+    const list = await UserModel.find({ tel: pattern })
+      .sort({ _id: -1 })
+      .skip(parseInt(pageSize) * parseInt(currentPage))
+      .limit(parseInt(pageSize))
+    const total = await UserModel.find({ tel: pattern }).countDocuments()
+    ctx.body = {
+      code: '1000',
+      message: '请求成功',
+      data: {
+        list,
+        total,
+      },
     }
   } catch (e) {
     console.log(e)

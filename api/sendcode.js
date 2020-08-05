@@ -3,6 +3,7 @@ const Router = require('@koa/router')
 const UserModel = require('../model/User')
 const SMSModel = require('../model/SMS')
 const router = new Router({ prefix: '/sendcode' })
+const { verifyAppBaseInfo } = require('../utils/verify')
 
 const code = 666666
 
@@ -83,7 +84,7 @@ const sendCode = async (tel, ctx) => {
   }
 }
 
-router.post('/', async ctx => {
+router.post('/', verifyAppBaseInfo, async ctx => {
   try {
     const { tel, change } = ctx.request.body
     //有change参数代表修改密码
