@@ -492,4 +492,153 @@ router.get('/', verifyAdminLogin, async ctx => {
   }
 })
 
+router.post('/', verifyAdminLogin, async ctx => {
+  try {
+    const writerStream = fs.createWriteStream(
+      process.cwd() + '/logs/register.log',
+      {
+        flags: 'a',
+      },
+    )
+    writerStream.on('error', function (err) {
+      console.log(err.stack)
+    })
+    const {
+      avatar,
+      tel,
+      username,
+      password,
+      vip,
+      vip_start,
+      vip_expiry,
+    } = ctx.request.body
+    console.log(avatar, tel, username, password, vip, vip_start, vip_expiry)
+    const userDoc = await UserModel.findOne({ tel })
+    if (userDoc) {
+      ctx.body = {
+        code: '3000',
+        message: '用户已存在',
+      }
+    } else {
+      const count = await UserModel.count()
+      const newUser = new UserModel({
+        uid: count + 1,
+        avatar,
+        tel,
+        username,
+        password,
+        vip,
+        vip_start,
+        vip_expiry,
+        date: timeFormatter(new Date()),
+      })
+      await newUser.save()
+      writerStream.write(`用户${tel}在${new Date()}注册\n`, 'UTF8')
+      writerStream.end()
+      ctx.body = {
+        code: '1000',
+        message: '注册成功',
+      }
+    }
+  } catch (e) {
+    console.log(e)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
+router.post('/', verifyAdminLogin, async ctx => {
+  try {
+    const writerStream = fs.createWriteStream(
+      process.cwd() + '/logs/register.log',
+      {
+        flags: 'a',
+      },
+    )
+    writerStream.on('error', function (err) {
+      console.log(err.stack)
+    })
+    const {
+      avatar,
+      tel,
+      username,
+      password,
+      vip,
+      vip_start,
+      vip_expiry,
+    } = ctx.request.body
+    console.log(avatar, tel, username, password, vip, vip_start, vip_expiry)
+    const userDoc = await UserModel.findOne({ tel })
+    if (userDoc) {
+      ctx.body = {
+        code: '3000',
+        message: '用户已存在',
+      }
+    } else {
+      const count = await UserModel.count()
+      const newUser = new UserModel({
+        uid: count + 1,
+        avatar,
+        tel,
+        username,
+        password,
+        vip,
+        vip_start,
+        vip_expiry,
+        date: timeFormatter(new Date()),
+      })
+      await newUser.save()
+      writerStream.write(`用户${tel}在${new Date()}注册\n`, 'UTF8')
+      writerStream.end()
+      ctx.body = {
+        code: '1000',
+        message: '注册成功',
+      }
+    }
+  } catch (e) {
+    console.log(e)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
+router.delete('/:id', verifyAdminLogin, async ctx => {
+  try {
+    const writerStream = fs.createWriteStream(
+      process.cwd() + '/logs/user_delete.log',
+      {
+        flags: 'a',
+      },
+    )
+    writerStream.on('error', function (err) {
+      console.log(err.stack)
+    })
+    const { tel } = ctx.request.query
+    const result = await UserModel.deleteOne({ _id: ctx.params.id })
+    if (result.ok == 1 && result.deletedCount == 1) {
+      writerStream.write(`用户${tel}在${new Date()}被删除\n`, 'UTF8')
+      writerStream.end()
+      ctx.body = {
+        code: '1000',
+        message: '删除成功',
+      }
+    } else {
+      ctx.body = {
+        code: '2000',
+        message: '删除失败',
+      }
+    }
+  } catch (e) {
+    console.log(e)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
 module.exports = router

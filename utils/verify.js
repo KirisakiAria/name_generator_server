@@ -24,26 +24,19 @@ const verifyAppBaseInfo = async (ctx, next) => {
 const verifyAdminLogin = async (ctx, next) => {
   if (!ctx.request.header.authorization) {
     ctx.body = {
-      code: '2000',
+      code: '3007',
       message: '登陆状态失效，请重新登录',
     }
   }
   const jwt = new JWT(ctx.request.header.authorization)
   const res = jwt.verifyToken()
-  if (res.code == '1000') {
-    if (res.role == 1) {
-      const user = await AdminModel.findOne({ username: res.user })
-      if (user) {
-        await next()
-      } else {
-        ctx.body = {
-          code: '2001',
-          message: '无此用户信息，请重新登录',
-        }
-      }
+  if (res.code == '1000' && res.role == 1) {
+    const user = await AdminModel.findOne({ username: res.user })
+    if (user) {
+      await next()
     } else {
       ctx.body = {
-        code: '2001',
+        code: '3008',
         message: '无此用户信息，请重新登录',
       }
     }
@@ -59,26 +52,19 @@ const verifyAdminLogin = async (ctx, next) => {
 const verifyUserLogin = async (ctx, next) => {
   if (!ctx.request.header.authorization) {
     ctx.body = {
-      code: '2000',
+      code: '3007',
       message: '登陆状态失效，请重新登录',
     }
   }
   const jwt = new JWT(ctx.request.header.authorization)
   const res = jwt.verifyToken()
-  if (res.code == '1000') {
-    if (res.role == 2) {
-      const user = await UserModel.findOne({ tel: res.user })
-      if (user) {
-        await next()
-      } else {
-        ctx.body = {
-          code: '2001',
-          message: '无此用户信息，请重新登录',
-        }
-      }
+  if (res.code == '1000' && res.role == 2) {
+    const user = await UserModel.findOne({ tel: res.user })
+    if (user) {
+      await next()
     } else {
       ctx.body = {
-        code: '2001',
+        code: '3008',
         message: '无此用户信息，请重新登录',
       }
     }
@@ -90,4 +76,46 @@ const verifyUserLogin = async (ctx, next) => {
   }
 }
 
-module.exports = { verifyAppBaseInfo, verifyUserLogin, verifyAdminLogin }
+const verifyLogin = async (ctx, next) => {
+  if (!ctx.request.header.authorization) {
+    ctx.body = {
+      code: '3007',
+      message: '登陆状态失效，请重新登录',
+    }
+  }
+  const jwt = new JWT(ctx.request.header.authorization)
+  const res = jwt.verifyToken()
+  if (res.code == '1000' && res.role == 1) {
+    const user = await AdminModel.findOne({ username: res.user })
+    if (user) {
+      await next()
+    } else {
+      ctx.body = {
+        code: '3008',
+        message: '无此用户信息，请重新登录',
+      }
+    }
+  } else if (res.code == '1000' && res.role == 2) {
+    const user = await UserModel.findOne({ tel: res.user })
+    if (user) {
+      await next()
+    } else {
+      ctx.body = {
+        code: '3008',
+        message: '无此用户信息，请重新登录',
+      }
+    }
+  } else {
+    ctx.body = {
+      code: res.code,
+      message: res.message,
+    }
+  }
+}
+
+module.exports = {
+  verifyAppBaseInfo,
+  verifyUserLogin,
+  verifyAdminLogin,
+  verifyLogin,
+}

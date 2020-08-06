@@ -197,7 +197,7 @@ router.put('/:id', verifyAdminLogin, async ctx => {
 router.post('/file', verifyAdminLogin, async ctx => {
   try {
     const writerStream = fs.createWriteStream(
-      process.cwd() + '/logs/upload.log',
+      process.cwd() + '/logs/word_upload.log',
       {
         flags: 'a',
       },
@@ -227,7 +227,6 @@ router.post('/file', verifyAdminLogin, async ctx => {
       'UTF8',
     )
     writerStream.end()
-    console.log(`用户：${res.user}在${new Date()}上传了${arr.length}个词语\n`)
     ctx.body = {
       code: '1000',
       message: '上传成功',
