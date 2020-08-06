@@ -223,6 +223,7 @@ router.get('/history', verifyAppBaseInfo, verifyUserLogin, async ctx => {
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
     if (res.user) {
+      const { page } = ctx.request.query
       const user = await UserModel.findOne({ tel: res.user })
       if (user?.vip) {
         ctx.body = {
@@ -233,11 +234,12 @@ router.get('/history', verifyAppBaseInfo, verifyUserLogin, async ctx => {
           },
         }
       } else if (!user?.vip) {
+        const list = user.history.slice(0, 40)
         ctx.body = {
           code: '1000',
           message: '请求成功',
           data: {
-            list: user.history.slice(0, 30),
+            list: list.slice(page * 15, page * 15 + 15),
           },
         }
       } else {
@@ -266,6 +268,7 @@ router.get('/favourite', verifyAppBaseInfo, verifyUserLogin, async ctx => {
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
     if (res.user) {
+      const { page } = ctx.request.query
       const user = await UserModel.findOne({ tel: res.user })
       if (user?.vip) {
         ctx.body = {
@@ -276,11 +279,12 @@ router.get('/favourite', verifyAppBaseInfo, verifyUserLogin, async ctx => {
           },
         }
       } else if (!user?.vip) {
+        const list = user.favourites.slice(0, 30)
         ctx.body = {
           code: '1000',
           message: '请求成功',
           data: {
-            list: user.favourites.slice(0, 30),
+            list: list.slice(page * 15, page * 15 + 15),
           },
         }
       } else {

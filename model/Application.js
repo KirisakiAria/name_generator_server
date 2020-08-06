@@ -5,6 +5,7 @@ const applicationSchema = new Schema({
   secret: String,
   appName: String,
   packageName: String,
+  buildNumber: String,
   version: String,
 })
 
