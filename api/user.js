@@ -513,7 +513,6 @@ router.post('/', verifyAdminLogin, async ctx => {
       vip_start,
       vip_expiry,
     } = ctx.request.body
-    console.log(avatar, tel, username, password, vip, vip_start, vip_expiry)
     const userDoc = await UserModel.findOne({ tel })
     if (userDoc) {
       ctx.body = {

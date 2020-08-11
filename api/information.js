@@ -14,7 +14,7 @@ router.get('/error', verifyAdminLogin, async ctx => {
     } else {
       condition = { brand: pattern, system }
     }
-    console.log(condition)
+    condition
     const list = await ErrorModel.find(condition)
       .sort({ _id: -1 })
       .skip(parseInt(pageSize) * parseInt(currentPage))
