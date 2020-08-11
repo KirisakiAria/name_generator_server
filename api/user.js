@@ -5,6 +5,7 @@ const SMSModel = require('../model/SMS')
 const JWT = require('../utils/jwt')
 const timeFormatter = require('../utils/formatter').time
 const router = new Router({ prefix: '/user' })
+const encrypt = require('../utils/encryption')
 const {
   verifyAppBaseInfo,
   verifyAdminLogin,
@@ -15,7 +16,7 @@ router.post('/login', verifyAppBaseInfo, async ctx => {
   try {
     const { tel, password } = ctx.request.body
     const user = await UserModel.findOne({ tel })
-    if (user && user.password === password) {
+    if (user && user.password === encrypt(password)) {
       const jwt = new JWT({
         user: tel,
         role: 2,
@@ -39,8 +40,8 @@ router.post('/login', verifyAppBaseInfo, async ctx => {
         message: '手机号或密码错误',
       }
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -85,7 +86,7 @@ router.post('/register', verifyAppBaseInfo, async ctx => {
         const newUser = new UserModel({
           uid: count + 1,
           tel,
-          password,
+          password: encrypt(password),
           avatar: '/avatar.png',
           date: timeFormatter(new Date()),
           username: '彼岸自在',
@@ -102,8 +103,8 @@ router.post('/register', verifyAppBaseInfo, async ctx => {
         }
       }
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -148,8 +149,8 @@ router.post('/getdata', verifyAppBaseInfo, verifyUserLogin, async ctx => {
         message: '登陆状态失效，请重新登录',
       }
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -192,7 +193,7 @@ router.post('/changepassword', verifyAppBaseInfo, async ctx => {
       } else {
         const result = await UserModel.updateOne(
           { tel },
-          { $set: { password } },
+          { $set: { password: encrypt(password) } },
         )
         if (result.ok == 1 && result.nModified == 1) {
           writerStream.write(`用户${tel}在${new Date()}修改密码\n`, 'UTF8')
@@ -209,8 +210,8 @@ router.post('/changepassword', verifyAppBaseInfo, async ctx => {
         }
       }
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -254,8 +255,8 @@ router.get('/history', verifyAppBaseInfo, verifyUserLogin, async ctx => {
         message: '登陆状态失效，请重新登录',
       }
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -299,8 +300,8 @@ router.get('/favourite', verifyAppBaseInfo, verifyUserLogin, async ctx => {
         message: '登陆状态失效，请重新登录',
       }
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -352,8 +353,8 @@ router.post('/favourite', verifyAppBaseInfo, verifyUserLogin, async ctx => {
         message: '无此用户信息，请重新登录',
       }
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -392,8 +393,8 @@ router.delete(
           message: '无此用户信息，请重新登录',
         }
       }
-    } catch (e) {
-      console.log(e)
+    } catch (err) {
+      console.log(err)
       ctx.body = {
         code: '9000',
         message: '请求错误',
@@ -425,8 +426,8 @@ router.put('/avatar', verifyAppBaseInfo, verifyUserLogin, async ctx => {
         }
       }
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -457,8 +458,8 @@ router.put('/username', verifyAppBaseInfo, verifyUserLogin, async ctx => {
         }
       }
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -483,8 +484,8 @@ router.get('/', verifyAdminLogin, async ctx => {
         total,
       },
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -526,7 +527,7 @@ router.post('/', verifyAdminLogin, async ctx => {
         avatar,
         tel,
         username,
-        password,
+        password: encrypt(password),
         vip,
         vip_start,
         vip_expiry,
@@ -540,8 +541,8 @@ router.post('/', verifyAdminLogin, async ctx => {
         message: '注册成功',
       }
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -569,7 +570,6 @@ router.post('/', verifyAdminLogin, async ctx => {
       vip_start,
       vip_expiry,
     } = ctx.request.body
-    console.log(avatar, tel, username, password, vip, vip_start, vip_expiry)
     const userDoc = await UserModel.findOne({ tel })
     if (userDoc) {
       ctx.body = {
@@ -583,7 +583,7 @@ router.post('/', verifyAdminLogin, async ctx => {
         avatar,
         tel,
         username,
-        password,
+        password: encrypt(password),
         vip,
         vip_start,
         vip_expiry,
@@ -597,8 +597,8 @@ router.post('/', verifyAdminLogin, async ctx => {
         message: '注册成功',
       }
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -632,8 +632,8 @@ router.delete('/:id', verifyAdminLogin, async ctx => {
         message: '删除失败',
       }
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',

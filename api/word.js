@@ -55,8 +55,8 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
         word: data.word,
       },
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -130,8 +130,8 @@ router.get('/', verifyAdminLogin, async ctx => {
         total,
       },
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -157,8 +157,8 @@ router.post('/', verifyAdminLogin, async ctx => {
         message: '添加成功',
       }
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -185,8 +185,8 @@ router.put('/:id', verifyAdminLogin, async ctx => {
         message: '修改失败',
       }
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -279,8 +279,8 @@ router.delete('/:id', verifyAdminLogin, async ctx => {
         message: '删除失败',
       }
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',

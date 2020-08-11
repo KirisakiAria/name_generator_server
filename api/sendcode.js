@@ -75,8 +75,8 @@ const sendCode = async (tel, ctx) => {
         message: '发送成功',
       }
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     return {
       code: '9000',
       message: '请求错误',
@@ -111,8 +111,8 @@ router.post('/', verifyAppBaseInfo, async ctx => {
         ctx.body = res
       }
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',

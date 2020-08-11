@@ -28,8 +28,8 @@ router.get('/error', verifyAdminLogin, async ctx => {
         total,
       },
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -60,8 +60,8 @@ router.post('/error', verifyAppBaseInfo, async ctx => {
       code: '1000',
       message: '请求成功',
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -83,8 +83,8 @@ router.delete('/:id', verifyAdminLogin, async ctx => {
         message: '删除失败',
       }
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',

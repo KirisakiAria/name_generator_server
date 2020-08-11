@@ -29,8 +29,8 @@ router.post('/login', async ctx => {
         message: '帐号或密码错误',
       }
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',

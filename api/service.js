@@ -13,8 +13,8 @@ router.get('/', async ctx => {
       message: '请求成功',
       data: data[0],
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -30,8 +30,8 @@ router.get('/privacypolicy', async ctx => {
       message: '请求成功',
       data: data[0].privacyPolicy,
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -47,8 +47,8 @@ router.get('/terms', async ctx => {
       message: '请求成功',
       data: data[0].terms,
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -64,8 +64,8 @@ router.get('/usage', async ctx => {
       message: '请求成功',
       data: data[0].usage,
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -91,8 +91,8 @@ router.put('/:id', verifyAdminLogin, async ctx => {
         message: '保存失败',
       }
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -109,8 +109,8 @@ router.post('/feedback', async ctx => {
       code: '1000',
       message: '反馈成功',
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',

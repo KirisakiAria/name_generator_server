@@ -14,8 +14,8 @@ router.get('/', verifyAdminLogin, async ctx => {
         app: app[0],
       },
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -26,8 +26,8 @@ router.get('/', verifyAdminLogin, async ctx => {
 router.get('/update', verifyAppBaseInfo, async ctx => {
   try {
     //有change参数代表修改密码
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -60,8 +60,8 @@ router.put('/:id', verifyAdminLogin, async ctx => {
         message: '请求错误',
       }
     }
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
