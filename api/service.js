@@ -1,10 +1,11 @@
 const Router = require('@koa/router')
 const ServiceModel = require('../model/Service')
+const FeedbackModel = require('../model/Feedback')
 const { verifyAdminLogin } = require('../utils/verify')
 
 const router = new Router({ prefix: '/service' })
 
-router.get('/', verifyAdminLogin, async ctx => {
+router.get('/', async ctx => {
   try {
     const data = await ServiceModel.find()
     ctx.body = {
@@ -89,6 +90,24 @@ router.put('/:id', verifyAdminLogin, async ctx => {
         code: '2000',
         message: '保存失败',
       }
+    }
+  } catch (e) {
+    console.log(e)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
+router.post('/feedback', async ctx => {
+  try {
+    const { content } = ctx.request.body
+    const data = new FeedbackModel(content)
+    await data.save()
+    ctx.body = {
+      code: '1000',
+      message: '反馈成功',
     }
   } catch (e) {
     console.log(e)
