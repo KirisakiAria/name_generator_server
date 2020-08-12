@@ -69,7 +69,7 @@ router.post('/error', verifyAppBaseInfo, async ctx => {
   }
 })
 
-router.delete('/:id', verifyAdminLogin, async ctx => {
+router.delete('/error/:id', verifyAdminLogin, async ctx => {
   try {
     const result = await ErrorModel.deleteOne({ _id: ctx.params.id })
     if (result.ok == 1 && result.deletedCount == 1) {
