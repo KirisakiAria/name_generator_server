@@ -1,7 +1,6 @@
 const Router = require('@koa/router')
 const ServiceModel = require('../model/Service')
 const FeedbackModel = require('../model/Feedback')
-const timeFormatter = require('../utils/formatter').time
 const { verifyAdminLogin } = require('../utils/verify')
 
 const router = new Router({ prefix: '/service' })
@@ -101,24 +100,6 @@ router.put('/:id', verifyAdminLogin, async ctx => {
   }
 })
 
-router.post('/feedback', async ctx => {
-  try {
-    const { content } = ctx.request.body
-    const data = new FeedbackModel(content)
-    await data.save()
-    ctx.body = {
-      code: '1000',
-      message: '反馈成功',
-    }
-  } catch (err) {
-    console.log(err)
-    ctx.body = {
-      code: '9000',
-      message: '请求错误',
-    }
-  }
-})
-
 router.get('/feedback', verifyAdminLogin, async ctx => {
   try {
     const {
@@ -129,11 +110,22 @@ router.get('/feedback', verifyAdminLogin, async ctx => {
       currentPage,
     } = ctx.request.query
     const pattern = new RegExp(searchContent, 'i')
-    const list = await FeedbackModel.find({ tel: pattern })
+    let condition
+    if (startTime && endTime) {
+      condition = {
+        tel: pattern,
+        time: { $lte: endTime, $gte: startTime },
+      }
+    } else {
+      condition = {
+        tel: pattern,
+      }
+    }
+    const list = await FeedbackModel.find(condition)
       .sort({ _id: -1 })
       .skip(parseInt(pageSize) * parseInt(currentPage))
       .limit(parseInt(pageSize))
-    const total = await ErrorModel.find({ tel: pattern }).countDocuments()
+    const total = await FeedbackModel.find(condition).countDocuments()
     ctx.body = {
       code: '1000',
       message: '请求成功',
@@ -141,6 +133,30 @@ router.get('/feedback', verifyAdminLogin, async ctx => {
         list,
         total,
       },
+    }
+  } catch (err) {
+    console.log(err)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
+router.post('/feedback', async ctx => {
+  try {
+    const { tel, username, email, content } = ctx.request.body
+    const data = new FeedbackModel({
+      tel,
+      username,
+      email,
+      content,
+      time: new Date(),
+    })
+    await data.save()
+    ctx.body = {
+      code: '1000',
+      message: '反馈成功',
     }
   } catch (err) {
     console.log(err)
