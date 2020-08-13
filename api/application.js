@@ -1,3 +1,4 @@
+const fs = require('fs')
 const Router = require('@koa/router')
 const ApplicationModel = require('../model/Application')
 const { verifyAppBaseInfo, verifyAdminLogin } = require('../utils/verify')
@@ -25,7 +26,18 @@ router.get('/', verifyAdminLogin, async ctx => {
 
 router.get('/update', verifyAppBaseInfo, async ctx => {
   try {
-    //有change参数代表修改密码
+    const { version } = ctx.request.query
+    const app = await ApplicationModel.find()
+    const currentVersion = app[0].version
+    if (version !== currentVersion) {
+      const readStream = fs.createReadStream('../download/bianzizai-latest.7z')
+      ctx.type = 'zip'
+    } else {
+      ctx.body = {
+        code: '1000',
+        message: '您的版本已经是最新',
+      }
+    }
   } catch (err) {
     console.log(err)
     ctx.body = {

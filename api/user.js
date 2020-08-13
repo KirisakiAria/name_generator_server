@@ -82,7 +82,7 @@ router.post('/register', verifyAppBaseInfo, async ctx => {
           message: '验证码错误',
         }
       } else {
-        const count = await UserModel.count()
+        const count = await UserModel.countDocuments()
         const newUser = new UserModel({
           uid: count + 1,
           tel,
@@ -235,7 +235,7 @@ router.get('/history', verifyAppBaseInfo, verifyUserLogin, async ctx => {
           },
         }
       } else if (!user?.vip) {
-        const list = user.history.slice(0, 40)
+        const list = user.history.slice(0, 30)
         ctx.body = {
           code: '1000',
           message: '请求成功',
@@ -320,7 +320,7 @@ router.post('/favourite', verifyAppBaseInfo, verifyUserLogin, async ctx => {
         if (err) {
           console.log(err)
         } else {
-          if (res.favourites.length >= 500) {
+          if (res.favourites.length >= 300) {
             success = false
           } else {
             const index = res.favourites.findIndex(e => e.word === word)
@@ -495,15 +495,6 @@ router.get('/', verifyAdminLogin, async ctx => {
 
 router.post('/', verifyAdminLogin, async ctx => {
   try {
-    const writerStream = fs.createWriteStream(
-      process.cwd() + '/logs/register.log',
-      {
-        flags: 'a',
-      },
-    )
-    writerStream.on('error', function (err) {
-      console.log(err.stack)
-    })
     const {
       avatar,
       tel,
@@ -520,7 +511,7 @@ router.post('/', verifyAdminLogin, async ctx => {
         message: '用户已存在',
       }
     } else {
-      const count = await UserModel.count()
+      const count = await UserModel.countDocuments()
       const newUser = new UserModel({
         uid: count + 1,
         avatar,
@@ -533,11 +524,9 @@ router.post('/', verifyAdminLogin, async ctx => {
         date: timeFormatter(new Date()),
       })
       await newUser.save()
-      writerStream.write(`用户${tel}在${new Date()}注册\n`, 'UTF8')
-      writerStream.end()
       ctx.body = {
         code: '1000',
-        message: '注册成功',
+        message: '添加用户成功',
       }
     }
   } catch (err) {
@@ -549,17 +538,8 @@ router.post('/', verifyAdminLogin, async ctx => {
   }
 })
 
-router.post('/', verifyAdminLogin, async ctx => {
+router.put('/:id', verifyAdminLogin, async ctx => {
   try {
-    const writerStream = fs.createWriteStream(
-      process.cwd() + '/logs/register.log',
-      {
-        flags: 'a',
-      },
-    )
-    writerStream.on('error', function (err) {
-      console.log(err.stack)
-    })
     const {
       avatar,
       tel,
@@ -569,31 +549,29 @@ router.post('/', verifyAdminLogin, async ctx => {
       vip_start,
       vip_expiry,
     } = ctx.request.body
-    const userDoc = await UserModel.findOne({ tel })
-    if (userDoc) {
-      ctx.body = {
-        code: '3000',
-        message: '用户已存在',
-      }
-    } else {
-      const count = await UserModel.count()
-      const newUser = new UserModel({
-        uid: count + 1,
-        avatar,
-        tel,
-        username,
-        password: encrypt(password),
-        vip,
-        vip_start,
-        vip_expiry,
-        date: timeFormatter(new Date()),
-      })
-      await newUser.save()
-      writerStream.write(`用户${tel}在${new Date()}注册\n`, 'UTF8')
-      writerStream.end()
+    const result = await UserModel.updateOne(
+      { _id: ctx.params.id },
+      {
+        $set: {
+          avatar,
+          tel,
+          username,
+          password,
+          vip,
+          vip_start,
+          vip_expiry,
+        },
+      },
+    )
+    if (result.ok == 1 && result.nModified == 1) {
       ctx.body = {
         code: '1000',
-        message: '注册成功',
+        message: '修改成功',
+      }
+    } else {
+      ctx.body = {
+        code: '9000',
+        message: '请求错误',
       }
     }
   } catch (err) {

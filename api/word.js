@@ -34,8 +34,8 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
             number,
             word: data.word,
           })
-          if (res.history.length > 300) {
-            for (let i = res.history.length - 300; i > 0; i--) {
+          if (res.history.length > 200) {
+            for (let i = res.history.length - 200; i > 0; i--) {
               res.history.shift()
             }
           }
