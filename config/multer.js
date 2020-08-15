@@ -5,7 +5,7 @@ const storage = multer.diskStorage({
     let path = './public/others'
     const fileType = file.mimetype
     if (fileType.includes('image') || fileType.includes('application')) {
-      path = './public/img'
+      path = './public/avatar'
     } else if (fileType.includes('text')) {
       path = './public/text'
     }
