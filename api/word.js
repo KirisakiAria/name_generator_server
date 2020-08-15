@@ -207,7 +207,7 @@ router.post('/file', verifyAdminLogin, async ctx => {
     const arr = unique(data.split(','))
     arr.forEach(async e => {
       //最大长度暂定为5
-      if (e.length > 5) {
+      if (e.length > 5 || e.length < 1) {
         return false
       }
       const Model = selectModel(type, e.length)

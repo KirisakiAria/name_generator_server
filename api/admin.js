@@ -2,12 +2,13 @@ const JWT = require('../utils/jwt')
 const Router = require('@koa/router')
 const AdminModel = require('../model/Admin')
 const router = new Router({ prefix: '/admin' })
+const encrypt = require('../utils/encryption')
 
 router.post('/login', async ctx => {
   try {
     const { username, password } = ctx.request.body
     const user = await AdminModel.findOne({ username })
-    if (user && user.password === password) {
+    if (user && user.password === encrypt(password)) {
       const jwt = new JWT({
         user: username,
         role: 1,

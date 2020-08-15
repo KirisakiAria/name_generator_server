@@ -1,4 +1,3 @@
-const fs = require('fs')
 const Router = require('@koa/router')
 const ApplicationModel = require('../model/Application')
 const { verifyAppBaseInfo, verifyAdminLogin } = require('../utils/verify')
@@ -30,8 +29,10 @@ router.get('/update', verifyAppBaseInfo, async ctx => {
     const app = await ApplicationModel.find()
     const currentVersion = app[0].version
     if (version !== currentVersion) {
-      const readStream = fs.createReadStream('../download/bianzizai-latest.7z')
-      ctx.type = 'zip'
+      ctx.body = {
+        code: '1000',
+        message: '发现新版本，请到APP市场或官网下载更新',
+      }
     } else {
       ctx.body = {
         code: '1000',

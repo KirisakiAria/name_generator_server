@@ -8,17 +8,21 @@ const word = require('./word')
 const application = require('./application')
 const service = require('./service')
 const information = require('./information')
+const web = require('./web')
 
-const router = new Router({ prefix: `/api/${config.apiVersion}` })
+const apiRouter = new Router({ prefix: `/api/${config.apiVersion}` })
 
 //验证
-router.use(admin.routes()).use(user.allowedMethods())
-router.use(user.routes()).use(user.allowedMethods())
-router.use(sendcode.routes()).use(router.allowedMethods())
-router.use(upload.routes()).use(router.allowedMethods())
-router.use(word.routes()).use(router.allowedMethods())
-router.use(application.routes()).use(router.allowedMethods())
-router.use(service.routes()).use(router.allowedMethods())
-router.use(information.routes()).use(router.allowedMethods())
+apiRouter.use(admin.routes()).use(admin.allowedMethods())
+apiRouter.use(user.routes()).use(user.allowedMethods())
+apiRouter.use(sendcode.routes()).use(sendcode.allowedMethods())
+apiRouter.use(upload.routes()).use(upload.allowedMethods())
+apiRouter.use(word.routes()).use(word.allowedMethods())
+apiRouter.use(application.routes()).use(application.allowedMethods())
+apiRouter.use(service.routes()).use(service.allowedMethods())
+apiRouter.use(information.routes()).use(information.allowedMethods())
 
-module.exports = router
+const webRouter = new Router()
+webRouter.use(web.routes()).use(web.allowedMethods())
+
+module.exports = { apiRouter, webRouter }

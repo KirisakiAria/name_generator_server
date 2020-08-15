@@ -1,8 +1,18 @@
-const http = require('http')
+const path = require('path')
+const fs = require('fs')
+const https = require('https')
 const app = require('../app')
 const config = require('../config/config')
-const httpServer = http.createServer(app.callback())
 
-httpServer.listen(config.port, () => {
-    console.log(`服务器运行在${config.port}端口`)
+const sslify = require('koa-sslify').default
+app.use(sslify())
+
+const options = {
+  key: fs.readFileSync(path.resolve(__dirname, '../ssl/server.key')),
+  cert: fs.readFileSync(path.resolve(__dirname, '../ssl/server.crt')),
+}
+
+const httpsServer = https.createServer(options, app.callback())
+httpsServer.listen(config.port, () => {
+  console.log(`服务器运行在${config.port}端口`)
 })

@@ -7,6 +7,7 @@ const bodyParser = require('koa-bodyparser')
 const cors = require('koa2-cors')
 const api = require('./api')
 const config = require('./config/config')
+const views = require('koa-views')
 
 mongoose
   .connect(config.db, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -20,10 +21,16 @@ mongoose
   )
 
 const app = new Koa()
+app.use(
+  views(path.join(__dirname, './static'), {
+    extension: 'ejs',
+  }),
+)
 app.use(cors())
 app.use(koaBody())
 app.use(static(path.join(__dirname) + '/public/'))
 app.use(bodyParser())
-app.use(api.routes())
+app.use(api.apiRouter.routes())
+app.use(api.webRouter.routes())
 
 module.exports = app
