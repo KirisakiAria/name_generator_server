@@ -2,26 +2,22 @@ const fs = require('fs')
 const Router = require('@koa/router')
 const router = new Router({ prefix: '/word' })
 const JWT = require('../utils/jwt')
-const JapaneseFiveWordModel = require('../model/JapaneseFiveWord')
-const JapaneseFourWordModel = require('../model/JapaneseFourWord')
-const JapaneseThreeWordModel = require('../model/JapaneseThreeWord')
-const JapaneseTwoWordModel = require('../model/JapaneseTwoWord')
-const JapaneseOneWordModel = require('../model/JapaneseOneWord')
-const ChineseFiveWordModel = require('../model/ChineseFiveWord')
-const ChineseFourWordModel = require('../model/ChineseFourWord')
-const ChineseThreeWordModel = require('../model/ChineseThreeWord')
-const ChineseTwoWordModel = require('../model/ChineseTwoWord')
-const ChineseOneWordModel = require('../model/ChineseOneWord')
+const JapaneseWordModel = require('../model/JapaneseWord')
+const ChineseWordModel = require('../model/ChineseWord')
 const UserModel = require('../model/User')
 const { verifyAppBaseInfo, verifyAdminLogin } = require('../utils/verify')
 
 router.post('/random', verifyAppBaseInfo, async ctx => {
   try {
-    const { type, number } = ctx.request.body
-    const Model = selectModel(type, Number.parseInt(number))
-    const count = await Model.find().countDocuments()
+    const { type, length } = ctx.request.body
+    const Model = selectModel(type)
+    const count = await Model.find({
+      length: Number.parseInt(length),
+    }).countDocuments()
     const randomIndex = Math.floor(Math.random() * count)
-    let data = await Model.findOne().skip(randomIndex)
+    let data = await Model.findOne({
+      length: Number.parseInt(length),
+    }).skip(randomIndex)
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
     if (res.user) {
@@ -31,7 +27,7 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
         } else {
           res.history.unshift({
             type,
-            number,
+            length,
             word: data.word,
           })
           if (res.history.length > 200) {
@@ -64,64 +60,36 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
   }
 })
 
-const selectModel = (type, number) => {
-  let model
+const selectModel = type => {
   if (type == '中国风') {
-    switch (number) {
-      case 1:
-        model = ChineseOneWordModel
-        break
-      case 2:
-        model = ChineseTwoWordModel
-        break
-      case 3:
-        model = ChineseThreeWordModel
-        break
-      case 4:
-        model = ChineseFourWordModel
-        break
-      case 5:
-        model = ChineseFiveWordModel
-        break
-    }
+    return ChineseWordModel
   } else {
-    switch (number) {
-      case 1:
-        model = JapaneseOneWordModel
-        break
-      case 2:
-        model = JapaneseTwoWordModel
-        break
-      case 3:
-        model = JapaneseThreeWordModel
-        break
-      case 4:
-        model = JapaneseFourWordModel
-        break
-      case 5:
-        model = JapaneseFiveWordModel
-        break
-    }
+    return JapaneseWordModel
   }
-  return model
 }
 
 router.get('/', verifyAdminLogin, async ctx => {
   try {
     const {
       type,
-      number,
+      length,
       searchContent,
       pageSize,
       currentPage,
     } = ctx.request.query
-    const Model = selectModel(type, Number.parseInt(number))
+    const Model = selectModel(type)
     const pattern = new RegExp(searchContent, 'i')
-    const list = await Model.find({ word: pattern })
+    const list = await Model.find({
+      word: pattern,
+      length: Number.parseInt(length),
+    })
       .sort({ _id: -1 })
       .skip(parseInt(pageSize) * parseInt(currentPage))
       .limit(parseInt(pageSize))
-    const total = await Model.find({ word: pattern }).countDocuments()
+    const total = await Model.find({
+      word: pattern,
+      length: Number.parseInt(length),
+    }).countDocuments()
     ctx.body = {
       code: '1000',
       message: '请求成功',
@@ -142,7 +110,7 @@ router.get('/', verifyAdminLogin, async ctx => {
 router.post('/', verifyAdminLogin, async ctx => {
   try {
     const { word, type } = ctx.request.body
-    const Model = selectModel(type, word.length)
+    const Model = selectModel(type)
     const existedWord = await Model.findOne({ word })
     if (existedWord) {
       ctx.body = {
@@ -150,7 +118,10 @@ router.post('/', verifyAdminLogin, async ctx => {
         message: '词语已存在',
       }
     } else {
-      const wordObj = new Model({ word })
+      const wordObj = new Model({
+        word,
+        length: word.length,
+      })
       await wordObj.save()
       ctx.body = {
         code: '1000',
@@ -169,7 +140,7 @@ router.post('/', verifyAdminLogin, async ctx => {
 router.put('/:id', verifyAdminLogin, async ctx => {
   try {
     const { word, type } = ctx.request.body
-    const Model = selectModel(type, word.length)
+    const Model = selectModel(type)
     const result = await Model.updateOne(
       { _id: ctx.params.id },
       { $set: { word } },
@@ -205,25 +176,33 @@ router.post('/file', verifyAdminLogin, async ctx => {
     const { type, path } = ctx.request.body
     const data = await loadFile(path)
     const arr = unique(data.split(','))
+    let length = 0
     arr.forEach(async e => {
-      //最大长度暂定为5
-      if (e.length > 5 || e.length < 1) {
+      if (!e || e.length < 1) {
         return false
       }
-      const Model = selectModel(type, e.length)
-      const existedWord = await Model.findOne({ word: e })
+      const Model = selectModel(type)
+      const existedWord = await Model.findOne({
+        word: e,
+      })
       //防止重复
       if (existedWord) {
         return false
       } else {
-        const word = new Model({ word: e })
+        const word = new Model({
+          word: e,
+          length: e.length,
+        })
         await word.save()
+        length++
       }
     })
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
     writerStream.write(
-      `用户：${res.user}在${new Date()}上传了${arr.length}个词语\n`,
+      `用户：${res.user}在${new Date()}上传了${
+        arr.length
+      }个词语，上传成功${length}个\n`,
       'UTF8',
     )
     writerStream.end()
@@ -232,6 +211,7 @@ router.post('/file', verifyAdminLogin, async ctx => {
       message: '上传成功',
     }
   } catch (err) {
+    console.log(err)
     ctx.body = {
       code: '9000',
       message: '请求错误',
@@ -265,8 +245,8 @@ const loadFile = path => {
 
 router.delete('/:id', verifyAdminLogin, async ctx => {
   try {
-    const { type, number } = ctx.request.query
-    const Model = selectModel(type, Number.parseInt(number))
+    const { type } = ctx.request.query
+    const Model = selectModel(type)
     const result = await Model.deleteOne({ _id: ctx.params.id })
     if (result.ok == 1 && result.deletedCount == 1) {
       ctx.body = {
