@@ -109,7 +109,7 @@ router.get('/', verifyAdminLogin, async ctx => {
 
 router.post('/', verifyAdminLogin, async ctx => {
   try {
-    const { word, type } = ctx.request.body
+    const { word, type, classify } = ctx.request.body
     const Model = selectModel(type)
     const existedWord = await Model.findOne({ word })
     if (existedWord) {
@@ -121,6 +121,7 @@ router.post('/', verifyAdminLogin, async ctx => {
       const wordObj = new Model({
         word,
         length: word.length,
+        classify,
       })
       await wordObj.save()
       ctx.body = {
@@ -178,7 +179,7 @@ router.post('/file', verifyAdminLogin, async ctx => {
     const arr = unique(data.split(','))
     let length = 0
     arr.forEach(async e => {
-      if (!e || e.length < 1) {
+      if (e.length < 1 || e === '') {
         return false
       }
       const Model = selectModel(type)
@@ -192,6 +193,7 @@ router.post('/file', verifyAdminLogin, async ctx => {
         const word = new Model({
           word: e,
           length: e.length,
+          classify: '默认',
         })
         await word.save()
         length++
@@ -243,12 +245,12 @@ const loadFile = path => {
   })
 }
 
-router.delete('/:id', verifyAdminLogin, async ctx => {
+router.post('/delete', verifyAdminLogin, async ctx => {
   try {
-    const { type } = ctx.request.query
+    const { type, ids } = ctx.request.body
     const Model = selectModel(type)
-    const result = await Model.deleteOne({ _id: ctx.params.id })
-    if (result.ok == 1 && result.deletedCount == 1) {
+    const result = await Model.deleteMany({ _id: { $in: ids } })
+    if (result.ok == 1 && result.deletedCount >= 1) {
       ctx.body = {
         code: '1000',
         message: '删除成功',
