@@ -190,10 +190,11 @@ router.post('/feedback', async ctx => {
   }
 })
 
-router.delete('/feedback/:id', verifyAdminLogin, async ctx => {
+router.post('/feedback/delete', verifyAdminLogin, async ctx => {
   try {
-    const result = await FeedbackModel.deleteOne({ _id: ctx.params.id })
-    if (result.ok == 1 && result.deletedCount == 1) {
+    const { ids } = ctx.request.body
+    const result = await FeedbackModel.deleteMany({ _id: { $in: ids } })
+    if (result.ok == 1 && result.deletedCount >= 1) {
       ctx.body = {
         code: '1000',
         message: '删除成功',

@@ -69,10 +69,11 @@ router.post('/error', verifyAppBaseInfo, async ctx => {
   }
 })
 
-router.delete('/error/:id', verifyAdminLogin, async ctx => {
+router.post('/error/delete', verifyAdminLogin, async ctx => {
   try {
-    const result = await ErrorModel.deleteOne({ _id: ctx.params.id })
-    if (result.ok == 1 && result.deletedCount == 1) {
+    const { ids } = ctx.request.body
+    const result = await ErrorModel.deleteMany({ _id: { $in: ids } })
+    if (result.ok == 1 && result.deletedCount >= 1) {
       ctx.body = {
         code: '1000',
         message: '删除成功',
