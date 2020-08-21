@@ -5,6 +5,7 @@ const JWT = require('../utils/jwt')
 const JapaneseWordModel = require('../model/JapaneseWord')
 const ChineseWordModel = require('../model/ChineseWord')
 const UserModel = require('../model/User')
+const CoupleModel = require('../model/Couple')
 const { verifyAppBaseInfo, verifyAdminLogin } = require('../utils/verify')
 
 router.post('/random', verifyAppBaseInfo, async ctx => {
@@ -259,6 +260,77 @@ router.post('/delete', verifyAdminLogin, async ctx => {
       ctx.body = {
         code: '2000',
         message: '删除失败',
+      }
+    }
+  } catch (err) {
+    console.log(err)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
+router.get('/couples', verifyAdminLogin, async ctx => {
+  try {
+    const {
+      type,
+      length,
+      searchContent,
+      pageSize,
+      currentPage,
+    } = ctx.request.query
+    const pattern = new RegExp(searchContent, 'i')
+    const list = await CoupleModel.find({
+      word: pattern,
+      type,
+      length: Number.parseInt(length),
+    })
+      .sort({ _id: -1 })
+      .skip(parseInt(pageSize) * parseInt(currentPage))
+      .limit(parseInt(pageSize))
+    const total = await CoupleModel.find({
+      word: pattern,
+      type,
+      length: Number.parseInt(length),
+    }).countDocuments()
+    ctx.body = {
+      code: '1000',
+      message: '请求成功',
+      data: {
+        list,
+        total,
+      },
+    }
+  } catch (err) {
+    console.log(err)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
+router.post('/couples', verifyAdminLogin, async ctx => {
+  try {
+    const { type, words } = ctx.request.body
+    const stringWords = [words[0].word, words[1].word]
+    const existedWord = await CoupleModel.findOne({ words: stringWords })
+    if (existedWord) {
+      ctx.body = {
+        code: '2001',
+        message: '词语已存在',
+      }
+    } else {
+      const couple = new CoupleModel({
+        type,
+        words: stringWords,
+        length: words[0].length,
+      })
+      await couple.save()
+      ctx.body = {
+        code: '1000',
+        message: '添加成功',
       }
     }
   } catch (err) {
