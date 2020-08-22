@@ -34,7 +34,6 @@ const sendCode = async (tel, ctx) => {
       if (smsDoc.sendCount >= 5) {
         writerStream.write(`手机号：${tel} 请求了5次验证码\n`, 'UTF8')
         writerStream.end()
-        console.log('同一手机号一天最多接收五次验证码')
         return {
           code: '3003',
           message: '同一手机号一天最多接收五次验证码',

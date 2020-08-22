@@ -282,7 +282,7 @@ router.get('/couples', verifyAdminLogin, async ctx => {
     } = ctx.request.query
     const pattern = new RegExp(searchContent, 'i')
     const list = await CoupleModel.find({
-      word: pattern,
+      words: { $all: [pattern] },
       type,
       length: Number.parseInt(length),
     })
@@ -290,7 +290,7 @@ router.get('/couples', verifyAdminLogin, async ctx => {
       .skip(parseInt(pageSize) * parseInt(currentPage))
       .limit(parseInt(pageSize))
     const total = await CoupleModel.find({
-      word: pattern,
+      words: pattern,
       type,
       length: Number.parseInt(length),
     }).countDocuments()
@@ -314,23 +314,91 @@ router.get('/couples', verifyAdminLogin, async ctx => {
 router.post('/couples', verifyAdminLogin, async ctx => {
   try {
     const { type, words } = ctx.request.body
-    const stringWords = [words[0].word, words[1].word]
-    const existedWord = await CoupleModel.findOne({ words: stringWords })
+    const stringWords = [
+      [words[0].word, words[1].word],
+      [words[1].word, words[0].word],
+    ]
+    const existedWord = await CoupleModel.findOne({
+      words: { $in: stringWords },
+    })
     if (existedWord) {
       ctx.body = {
         code: '2001',
-        message: '词语已存在',
+        message: '情侣词语已存在',
       }
     } else {
       const couple = new CoupleModel({
         type,
-        words: stringWords,
+        words: [words[0].word, words[1].word],
         length: words[0].length,
       })
       await couple.save()
       ctx.body = {
         code: '1000',
         message: '添加成功',
+      }
+    }
+  } catch (err) {
+    console.log(err)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
+router.put('/couples/:id', verifyAdminLogin, async ctx => {
+  try {
+    const { type, words } = ctx.request.body
+    const result = await CoupleModel.updateOne(
+      { _id: ctx.params.id },
+      {
+        $set: {
+          type,
+          words,
+          length: words[0].length,
+        },
+      },
+    )
+    console.log({
+      type,
+      words: [words[0].word, words[1].word],
+      length: words[0].length,
+    })
+    console.log(result)
+    if (result.ok == 1 && result.nModified == 1) {
+      ctx.body = {
+        code: '1000',
+        message: '修改成功',
+      }
+    } else {
+      ctx.body = {
+        code: '2000',
+        message: '修改失败',
+      }
+    }
+  } catch (err) {
+    console.log(err)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
+router.post('/couples/delete', verifyAdminLogin, async ctx => {
+  try {
+    const { ids } = ctx.request.body
+    const result = await CoupleModel.deleteMany({ _id: { $in: ids } })
+    if (result.ok == 1 && result.deletedCount >= 1) {
+      ctx.body = {
+        code: '1000',
+        message: '删除成功',
+      }
+    } else {
+      ctx.body = {
+        code: '2000',
+        message: '删除失败',
       }
     }
   } catch (err) {
