@@ -313,11 +313,19 @@ router.get('/couples', verifyAdminLogin, async ctx => {
 
 router.post('/couples', verifyAdminLogin, async ctx => {
   try {
-    const { type, words } = ctx.request.body
-    const stringWords = [
-      [words[0].word, words[1].word],
-      [words[1].word, words[0].word],
-    ]
+    const { type, words, checked } = ctx.request.body
+    let stringWords
+    if (checked) {
+      stringWords = [
+        [words[0].word, words[1].word],
+        [words[1].word, words[0].word],
+      ]
+    } else {
+      stringWords = [
+        [words[0], words[1]],
+        [words[1], words[0]],
+      ]
+    }
     const existedWord = await CoupleModel.findOne({
       words: { $in: stringWords },
     })
@@ -329,7 +337,7 @@ router.post('/couples', verifyAdminLogin, async ctx => {
     } else {
       const couple = new CoupleModel({
         type,
-        words: [words[0].word, words[1].word],
+        words: checked ? [words[0].word, words[1].word] : [words[0], words[1]],
         length: words[0].length,
       })
       await couple.save()
@@ -360,12 +368,6 @@ router.put('/couples/:id', verifyAdminLogin, async ctx => {
         },
       },
     )
-    console.log({
-      type,
-      words: [words[0].word, words[1].word],
-      length: words[0].length,
-    })
-    console.log(result)
     if (result.ok == 1 && result.nModified == 1) {
       ctx.body = {
         code: '1000',
