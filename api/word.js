@@ -120,8 +120,9 @@ router.get('/', verifyAdminLogin, async ctx => {
 router.post('/', verifyAdminLogin, async ctx => {
   try {
     const { word, type, classify, showable } = ctx.request.body
+    const trimedWord = word.trim()
     const Model = selectModel(type)
-    const existedWord = await Model.findOne({ word })
+    const existedWord = await Model.findOne({ word: trimedWord })
     if (existedWord) {
       ctx.body = {
         code: '2001',
@@ -129,8 +130,8 @@ router.post('/', verifyAdminLogin, async ctx => {
       }
     } else {
       const wordObj = new Model({
-        word,
-        length: word.length,
+        word: trimedWord,
+        length: trimedWord.length,
         classify,
         showable,
       })
@@ -152,10 +153,16 @@ router.post('/', verifyAdminLogin, async ctx => {
 router.put('/:id', verifyAdminLogin, async ctx => {
   try {
     const { word, type, showable } = ctx.request.body
+    const trimedWord = word.trim()
     const Model = selectModel(type)
     const result = await Model.updateOne(
       { _id: ctx.params.id },
-      { $set: { word, showable } },
+      {
+        $set: {
+          word: trimedWord,
+          showable,
+        },
+      },
     )
     if (result.ok == 1 && result.nModified == 1) {
       ctx.body = {
@@ -195,15 +202,15 @@ router.post('/file', verifyAdminLogin, async ctx => {
       }
       const Model = selectModel(type)
       const existedWord = await Model.findOne({
-        word: e,
+        word: e.trim(),
       })
       //防止重复
       if (existedWord) {
         return false
       } else {
         const word = new Model({
-          word: e,
-          length: e.length,
+          word: e.trim(),
+          length: e.trim().length,
           classify: '默认',
         })
         await word.save()
