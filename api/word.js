@@ -152,7 +152,7 @@ router.post('/', verifyAdminLogin, async ctx => {
 
 router.put('/:id', verifyAdminLogin, async ctx => {
   try {
-    const { word, type, showable } = ctx.request.body
+    const { word, type, classify, showable } = ctx.request.body
     const trimedWord = word.trim()
     const Model = selectModel(type)
     const result = await Model.updateOne(
@@ -160,6 +160,7 @@ router.put('/:id', verifyAdminLogin, async ctx => {
       {
         $set: {
           word: trimedWord,
+          classify,
           showable,
         },
       },
