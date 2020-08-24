@@ -212,6 +212,7 @@ router.post('/file', verifyAdminLogin, async ctx => {
           word: e.trim(),
           length: e.trim().length,
           classify: '默认',
+          showable: true,
         })
         await word.save()
         length++
