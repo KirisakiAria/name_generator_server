@@ -2,9 +2,10 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 const coupleSchema = new Schema({
-  words: [],
+  words: [String],
   type: String,
   length: Number,
+  showable: Boolean,
 })
 
 const Couple = mongoose.model('Couple', coupleSchema)

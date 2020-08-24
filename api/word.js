@@ -14,10 +14,12 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
     const Model = selectModel(type)
     const count = await Model.find({
       length: Number.parseInt(length),
+      showable: true,
     }).countDocuments()
     const randomIndex = Math.floor(Math.random() * count)
     let data = await Model.findOne({
       length: Number.parseInt(length),
+      showable: true,
     }).skip(randomIndex)
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
@@ -74,16 +76,23 @@ router.get('/', verifyAdminLogin, async ctx => {
     const {
       type,
       length,
+      showable,
       searchContent,
       pageSize,
       currentPage,
     } = ctx.request.query
     const Model = selectModel(type)
     const pattern = new RegExp(searchContent, 'i')
-    const list = await Model.find({
+    let conditions = {
       word: pattern,
       length: Number.parseInt(length),
-    })
+    }
+    if (showable !== 'all') {
+      conditions = Object.assign(conditions, {
+        showable,
+      })
+    }
+    const list = await Model.find(conditions)
       .sort({ _id: -1 })
       .skip(parseInt(pageSize) * parseInt(currentPage))
       .limit(parseInt(pageSize))
@@ -110,7 +119,7 @@ router.get('/', verifyAdminLogin, async ctx => {
 
 router.post('/', verifyAdminLogin, async ctx => {
   try {
-    const { word, type, classify } = ctx.request.body
+    const { word, type, classify, showable } = ctx.request.body
     const Model = selectModel(type)
     const existedWord = await Model.findOne({ word })
     if (existedWord) {
@@ -123,6 +132,7 @@ router.post('/', verifyAdminLogin, async ctx => {
         word,
         length: word.length,
         classify,
+        showable,
       })
       await wordObj.save()
       ctx.body = {
@@ -141,11 +151,11 @@ router.post('/', verifyAdminLogin, async ctx => {
 
 router.put('/:id', verifyAdminLogin, async ctx => {
   try {
-    const { word, type } = ctx.request.body
+    const { word, type, showable } = ctx.request.body
     const Model = selectModel(type)
     const result = await Model.updateOne(
       { _id: ctx.params.id },
-      { $set: { word } },
+      { $set: { word, showable } },
     )
     if (result.ok == 1 && result.nModified == 1) {
       ctx.body = {
@@ -248,10 +258,10 @@ const loadFile = path => {
 
 router.post('/delete', verifyAdminLogin, async ctx => {
   try {
-    const { type, ids } = ctx.request.body
+    const { type, items } = ctx.request.body
     const Model = selectModel(type)
-    const result = await Model.deleteMany({ _id: { $in: ids } })
-    if (result.ok == 1 && result.deletedCount >= 1) {
+    const result = await Model.deleteMany({ _id: { $in: items } })
+    if (result.ok == 1 && result.deletedCount == items.length) {
       ctx.body = {
         code: '1000',
         message: '删除成功',
@@ -271,21 +281,57 @@ router.post('/delete', verifyAdminLogin, async ctx => {
   }
 })
 
+router.post('/toggleshowable', verifyAdminLogin, async ctx => {
+  try {
+    const { type, items, showable } = ctx.request.body
+
+    const Model = selectModel(type)
+    const result = await Model.updateMany(
+      { _id: { $in: items } },
+      { $set: { showable } },
+    )
+    if (result.ok == 1 && result.nModified == items.length) {
+      ctx.body = {
+        code: '1000',
+        message: '修改成功',
+      }
+    } else {
+      ctx.body = {
+        code: '2000',
+        message: '修改失败',
+      }
+    }
+  } catch (err) {
+    console.log(err)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
 router.get('/couples', verifyAdminLogin, async ctx => {
   try {
     const {
       type,
       length,
+      showable,
       searchContent,
       pageSize,
       currentPage,
     } = ctx.request.query
     const pattern = new RegExp(searchContent, 'i')
-    const list = await CoupleModel.find({
+    let conditions = {
       words: { $all: [pattern] },
       type,
       length: Number.parseInt(length),
-    })
+    }
+    if (showable !== 'all') {
+      conditions = Object.assign(conditions, {
+        showable,
+      })
+    }
+    const list = await CoupleModel.find(conditions)
       .sort({ _id: -1 })
       .skip(parseInt(pageSize) * parseInt(currentPage))
       .limit(parseInt(pageSize))
@@ -313,7 +359,7 @@ router.get('/couples', verifyAdminLogin, async ctx => {
 
 router.post('/couples', verifyAdminLogin, async ctx => {
   try {
-    const { type, words, checked } = ctx.request.body
+    const { type, words, checked, showable } = ctx.request.body
     let stringWords
     if (checked) {
       stringWords = [
@@ -339,6 +385,7 @@ router.post('/couples', verifyAdminLogin, async ctx => {
         type,
         words: checked ? [words[0].word, words[1].word] : [words[0], words[1]],
         length: words[0].length,
+        showable,
       })
       await couple.save()
       ctx.body = {
@@ -357,7 +404,7 @@ router.post('/couples', verifyAdminLogin, async ctx => {
 
 router.put('/couples/:id', verifyAdminLogin, async ctx => {
   try {
-    const { type, words } = ctx.request.body
+    const { type, words, showable } = ctx.request.body
     const result = await CoupleModel.updateOne(
       { _id: ctx.params.id },
       {
@@ -365,6 +412,7 @@ router.put('/couples/:id', verifyAdminLogin, async ctx => {
           type,
           words,
           length: words[0].length,
+          showable,
         },
       },
     )
@@ -390,9 +438,9 @@ router.put('/couples/:id', verifyAdminLogin, async ctx => {
 
 router.post('/couples/delete', verifyAdminLogin, async ctx => {
   try {
-    const { ids } = ctx.request.body
-    const result = await CoupleModel.deleteMany({ _id: { $in: ids } })
-    if (result.ok == 1 && result.deletedCount >= 1) {
+    const { items } = ctx.request.body
+    const result = await CoupleModel.deleteMany({ _id: { $in: items } })
+    if (result.ok == 1 && result.deletedCount == items.length) {
       ctx.body = {
         code: '1000',
         message: '删除成功',
@@ -401,6 +449,33 @@ router.post('/couples/delete', verifyAdminLogin, async ctx => {
       ctx.body = {
         code: '2000',
         message: '删除失败',
+      }
+    }
+  } catch (err) {
+    console.log(err)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
+router.post('/couples/toggleshowable', verifyAdminLogin, async ctx => {
+  try {
+    const { items, showable } = ctx.request.body
+    const result = await CoupleModel.updateMany(
+      { _id: { $in: items } },
+      { $set: { showable } },
+    )
+    if (result.ok == 1 && result.nModified == items.length) {
+      ctx.body = {
+        code: '1000',
+        message: '修改成功',
+      }
+    } else {
+      ctx.body = {
+        code: '2000',
+        message: '修改失败',
       }
     }
   } catch (err) {
