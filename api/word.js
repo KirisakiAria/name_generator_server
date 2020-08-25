@@ -268,9 +268,9 @@ const loadFile = path => {
 
 router.post('/output', verifyAdminLogin, async ctx => {
   try {
-    const writerStream = fs.createWriteStream(
-      process.cwd() + '/public/output/output.txt',
-    )
+    const txtPath = '/public/output/word.txt'
+    const gzPath = '/public/output/word.txt.gz'
+    const writerStream = fs.createWriteStream(process.cwd() + txtPath)
     const { type, classify, showable, length } = ctx.request.body
     let condition = {}
     if (classify !== 'all') {
@@ -290,16 +290,14 @@ router.post('/output', verifyAdminLogin, async ctx => {
     })
     writerStream.write(str, 'UTF8')
     writerStream.end()
-    const inp = fs.createReadStream(process.cwd() + '/public/output/output.txt')
-    const out = fs.createWriteStream(
-      process.cwd() + '/public/output/output.txt.gz',
-    )
+    const inp = fs.createReadStream(process.cwd() + txtPath)
+    const out = fs.createWriteStream(process.cwd() + gzPath)
     const gzlib = zlib.createGzip()
     inp.pipe(gzlib).pipe(out)
     ctx.body = {
       code: '1000',
       message: '下载成功',
-      downloadUrl: '/output/output.txt.gz',
+      downloadUrl: gzPath.replace('/public', ''),
     }
   } catch (err) {
     console.log(err)
@@ -531,6 +529,44 @@ router.post('/couples/toggleshowable', verifyAdminLogin, async ctx => {
         code: '2000',
         message: '修改失败',
       }
+    }
+  } catch (err) {
+    console.log(err)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
+router.post('/couples/output', verifyAdminLogin, async ctx => {
+  try {
+    const txtPath = '/public/output/couples.txt'
+    const gzPath = '/public/output/couples.txt.gz'
+    const writerStream = fs.createWriteStream(process.cwd() + txtPath)
+    const { type, showable, length } = ctx.request.body
+    let condition = { type }
+    if (showable !== 'all') {
+      condition = Object.assign(condition, { showable })
+    }
+    if (length !== 'all') {
+      condition = Object.assign(condition, { length })
+    }
+    const list = await CoupleModel.find(condition)
+    let str = ''
+    list.forEach(e => {
+      str += `${e.words.join(',')},`
+    })
+    writerStream.write(str, 'UTF8')
+    writerStream.end()
+    const inp = fs.createReadStream(process.cwd() + txtPath)
+    const out = fs.createWriteStream(process.cwd() + gzPath)
+    const gzlib = zlib.createGzip()
+    inp.pipe(gzlib).pipe(out)
+    ctx.body = {
+      code: '1000',
+      message: '下载成功',
+      downloadUrl: gzPath.replace('/public', ''),
     }
   } catch (err) {
     console.log(err)
