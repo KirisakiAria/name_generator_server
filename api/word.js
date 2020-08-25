@@ -194,6 +194,7 @@ router.post('/file', verifyAdminLogin, async ctx => {
         flags: 'a',
       },
     )
+    const clientIp = ctx.req.connection.remoteAddress
     const { type, path } = ctx.request.body
     const data = await loadFile(path)
     const arr = unique(data.split(','))
@@ -223,7 +224,7 @@ router.post('/file', verifyAdminLogin, async ctx => {
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
     writerStream.write(
-      `用户：${res.user}在${new Date()}上传了${
+      `用户：${res.user} IP：${clientIp} 在${new Date()}上传了${
         arr.length
       }个词语，上传成功${length}个\n`,
       'UTF8',

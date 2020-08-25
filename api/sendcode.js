@@ -24,7 +24,10 @@ const sendCode = async (tel, ctx) => {
       sameIpSendCount += e.sendCount
     })
     if (sameIpSendCount > 15) {
-      writerStream.write(`IP：${clientIp} 请求了15次验证码\n`, 'UTF8')
+      writerStream.write(
+        `手机号：${tel} IP：${clientIp} 请求了15次验证码\n`,
+        'UTF8',
+      )
       writerStream.end()
       return {
         code: '3005',
@@ -32,7 +35,10 @@ const sendCode = async (tel, ctx) => {
       }
     } else if (smsDoc) {
       if (smsDoc.sendCount >= 5) {
-        writerStream.write(`手机号：${tel} 请求了5次验证码\n`, 'UTF8')
+        writerStream.write(
+          `手机号：${tel} IP：${clientIp} 请求了5次验证码\n`,
+          'UTF8',
+        )
         writerStream.end()
         return {
           code: '3003',

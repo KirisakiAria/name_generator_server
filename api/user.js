@@ -14,6 +14,16 @@ const {
 
 router.post('/login', verifyAppBaseInfo, async ctx => {
   try {
+    const writerStream = fs.createWriteStream(
+      process.cwd() + '/logs/login.log',
+      {
+        flags: 'a',
+      },
+    )
+    writerStream.on('error', function (err) {
+      console.log(err.stack)
+    })
+    const clientIp = ctx.req.connection.remoteAddress
     const { tel, password } = ctx.request.body
     const user = await UserModel.findOne({ tel })
     if (user && user.password === encrypt(password)) {
@@ -22,6 +32,10 @@ router.post('/login', verifyAppBaseInfo, async ctx => {
         role: 2,
       })
       const token = jwt.generateToken()
+      writerStream.write(
+        `用户：${tel} IP：${clientIp} 在${new Date()}登陆\n`,
+        'UTF8',
+      )
       ctx.body = {
         code: '1000',
         message: '请求成功',
@@ -61,7 +75,7 @@ router.post('/register', verifyAppBaseInfo, async ctx => {
     writerStream.on('error', function (err) {
       console.log(err.stack)
     })
-
+    const clientIp = ctx.req.connection.remoteAddress
     const { tel, password, authCode } = ctx.request.body
     const userDoc = await UserModel.findOne({ tel })
     if (userDoc) {
@@ -87,7 +101,7 @@ router.post('/register', verifyAppBaseInfo, async ctx => {
           uid: count + 1,
           tel,
           password: encrypt(password),
-          avatar: '/avatar.png',
+          avatar: '/avatar/avatar.png',
           date: timeFormatter(new Date()),
           username: '彼岸自在',
           vip_start: 0,
@@ -95,7 +109,10 @@ router.post('/register', verifyAppBaseInfo, async ctx => {
           vip: false,
         })
         await newUser.save()
-        writerStream.write(`用户${tel}在${new Date()}注册\n`, 'UTF8')
+        writerStream.write(
+          `用户：${tel} IP：${clientIp} 在${new Date()}注册\n`,
+          'UTF8',
+        )
         writerStream.end()
         ctx.body = {
           code: '1000',
@@ -170,7 +187,7 @@ router.post('/changepassword', verifyAppBaseInfo, async ctx => {
     writerStream.on('error', function (err) {
       console.log(err.stack)
     })
-
+    const clientIp = ctx.req.connection.remoteAddress
     const { tel, password, authCode } = ctx.request.body
     const userDoc = await UserModel.findOne({ tel })
     if (!userDoc) {
@@ -196,7 +213,10 @@ router.post('/changepassword', verifyAppBaseInfo, async ctx => {
           { $set: { password: encrypt(password) } },
         )
         if (result.ok == 1 && result.nModified == 1) {
-          writerStream.write(`用户${tel}在${new Date()}修改密码\n`, 'UTF8')
+          writerStream.write(
+            `用户：${tel} IP：${clientIp} 在${new Date()}修改密码\n`,
+            'UTF8',
+          )
           writerStream.end()
           ctx.body = {
             code: '1000',
@@ -594,10 +614,14 @@ router.delete('/:id', verifyAdminLogin, async ctx => {
     writerStream.on('error', function (err) {
       console.log(err.stack)
     })
+    const clientIp = ctx.req.connection.remoteAddress
     const { tel } = ctx.request.query
     const result = await UserModel.deleteOne({ _id: ctx.params.id })
     if (result.ok == 1 && result.deletedCount == 1) {
-      writerStream.write(`用户${tel}在${new Date()}被删除\n`, 'UTF8')
+      writerStream.write(
+        `用户：${tel} IP：${clientIp} 在${new Date()}被删除\n`,
+        'UTF8',
+      )
       writerStream.end()
       ctx.body = {
         code: '1000',

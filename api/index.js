@@ -10,6 +10,7 @@ const service = require('./service')
 const information = require('./information')
 const web = require('./web')
 const dictionary = require('./dictionary')
+const system = require('./system')
 
 const apiRouter = new Router({ prefix: `/api/${config.apiVersion}` })
 
@@ -23,6 +24,7 @@ apiRouter.use(application.routes()).use(application.allowedMethods())
 apiRouter.use(service.routes()).use(service.allowedMethods())
 apiRouter.use(information.routes()).use(information.allowedMethods())
 apiRouter.use(dictionary.routes()).use(dictionary.allowedMethods())
+apiRouter.use(system.routes()).use(system.allowedMethods())
 
 const webRouter = new Router()
 webRouter.use(web.routes()).use(web.allowedMethods())

@@ -1,3 +1,4 @@
+const fs = require('fs')
 const JWT = require('../utils/jwt')
 const Router = require('@koa/router')
 const AdminModel = require('../model/Admin')
@@ -6,6 +7,16 @@ const encrypt = require('../utils/encryption')
 
 router.post('/login', async ctx => {
   try {
+    const writerStream = fs.createWriteStream(
+      process.cwd() + '/logs/admin.log',
+      {
+        flags: 'a',
+      },
+    )
+    writerStream.on('error', function (err) {
+      console.log(err.stack)
+    })
+    const clientIp = ctx.req.connection.remoteAddress
     const { username, password } = ctx.request.body
     const user = await AdminModel.findOne({ username })
     if (user && user.password === encrypt(password)) {
@@ -14,6 +25,10 @@ router.post('/login', async ctx => {
         role: 1,
       })
       const token = jwt.generateToken()
+      writerStream.write(
+        `用户：${username} IP：${clientIp} 在${new Date()}登陆后台\n`,
+        'UTF8',
+      )
       ctx.body = {
         code: '1000',
         message: '请求成功',
