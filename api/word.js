@@ -1,4 +1,5 @@
 const fs = require('fs')
+const zlib = require('zlib')
 const Router = require('@koa/router')
 const router = new Router({ prefix: '/word' })
 const JWT = require('../utils/jwt')
@@ -264,6 +265,50 @@ const loadFile = path => {
     })
   })
 }
+
+router.post('/output', verifyAdminLogin, async ctx => {
+  try {
+    const writerStream = fs.createWriteStream(
+      process.cwd() + '/public/output/output.txt',
+    )
+    const { type, classify, showable, length } = ctx.request.body
+    let condition = {}
+    if (classify !== 'all') {
+      condition = Object.assign(condition, { classify })
+    }
+    if (showable !== 'all') {
+      condition = Object.assign(condition, { showable })
+    }
+    if (length !== 'all') {
+      condition = Object.assign(condition, { length })
+    }
+    const Model = selectModel(type)
+    const list = await Model.find(condition)
+    let str = ''
+    list.forEach(e => {
+      str += `${e.word},`
+    })
+    writerStream.write(str, 'UTF8')
+    writerStream.end()
+    const inp = fs.createReadStream(process.cwd() + '/public/output/output.txt')
+    const out = fs.createWriteStream(
+      process.cwd() + '/public/output/output.txt.gz',
+    )
+    const gzlib = zlib.createGzip()
+    inp.pipe(gzlib).pipe(out)
+    ctx.body = {
+      code: '1000',
+      message: '下载成功',
+      downloadUrl: '/output/output.txt.gz',
+    }
+  } catch (err) {
+    console.log(err)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
 
 router.post('/delete', verifyAdminLogin, async ctx => {
   try {
