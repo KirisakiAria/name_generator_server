@@ -6,6 +6,7 @@ const adminSchema = new Schema({
   avatar: String,
   username: String,
   password: String,
+  secretCode: String,
 })
 
 const Admin = mongoose.model('Admin', adminSchema)
