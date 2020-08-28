@@ -11,6 +11,7 @@ router.get('/', verifyAdminLogin, async ctx => {
     cpu: await si.cpu(),
     time: await si.time(),
     load: await si.currentLoad(),
+    fsSize: await si.fsSize(),
   }
   try {
     ctx.body = {
