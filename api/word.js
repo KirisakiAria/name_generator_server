@@ -121,9 +121,8 @@ router.get('/', verifyAdminLogin, async ctx => {
 router.post('/', verifyAdminLogin, async ctx => {
   try {
     const { word, type, classify, showable } = ctx.request.body
-    const trimedWord = word.trim()
     const Model = selectModel(type)
-    const existedWord = await Model.findOne({ word: trimedWord })
+    const existedWord = await Model.findOne({ word })
     if (existedWord) {
       ctx.body = {
         code: '2001',
@@ -131,8 +130,8 @@ router.post('/', verifyAdminLogin, async ctx => {
       }
     } else {
       const wordObj = new Model({
-        word: trimedWord,
-        length: trimedWord.length,
+        word: word,
+        length: word.length,
         classify,
         showable,
       })
@@ -154,13 +153,12 @@ router.post('/', verifyAdminLogin, async ctx => {
 router.put('/:id', verifyAdminLogin, async ctx => {
   try {
     const { word, type, classify, showable } = ctx.request.body
-    const trimedWord = word.trim()
     const Model = selectModel(type)
     const result = await Model.updateOne(
       { _id: ctx.params.id },
       {
         $set: {
-          word: trimedWord,
+          word,
           classify,
           showable,
         },
@@ -445,6 +443,48 @@ router.post('/couples', verifyAdminLogin, async ctx => {
         code: '1000',
         message: '添加成功',
       }
+    }
+  } catch (err) {
+    console.log(err)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
+router.post('/couples/addToWordList', verifyAdminLogin, async ctx => {
+  try {
+    const { wordList } = ctx.request.body
+    let length = 0
+    for (let el of wordList) {
+      const Model = selectModel(el.type)
+      const existedWord1 = await Model.findOne({ word: el.words[0] })
+      if (!existedWord1) {
+        const wordObj = new Model({
+          word: el.words[0],
+          length: el.words[0].length,
+          classify: '默认',
+          showable: true,
+        })
+        await wordObj.save()
+        length++
+      }
+      const existedWord2 = await Model.findOne({ word: el.words[1] })
+      if (!existedWord2) {
+        const wordObj = new Model({
+          word: el.words[1],
+          length: el.words[1].length,
+          classify: '默认',
+          showable: true,
+        })
+        await wordObj.save()
+        length++
+      }
+    }
+    ctx.body = {
+      code: '1000',
+      message: `操作完成，共添加${length}个词语`,
     }
   } catch (err) {
     console.log(err)
