@@ -27,8 +27,8 @@ class JWT {
         },
         algorithm: 'RS256',
         //expiresIn: '15 days',
-        issuer: 'kirisakiaria',
-        audience: 'kirisakiaria',
+        issuer: 'bigteacher',
+        audience: 'bigteacher',
       },
     )
     return token
