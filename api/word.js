@@ -184,7 +184,7 @@ router.put('/:id', verifyAdminLogin, async ctx => {
   }
 })
 
-router.post('/file', verifyAdminLogin, async ctx => {
+router.post('/upload', verifyAdminLogin, async ctx => {
   try {
     const writerStream = fs.createWriteStream(
       process.cwd() + '/logs/word_upload.log',
@@ -193,7 +193,7 @@ router.post('/file', verifyAdminLogin, async ctx => {
       },
     )
     const clientIp = ctx.req.connection.remoteAddress
-    const { type, path } = ctx.request.body
+    const { type, path, showable } = ctx.request.body
     const data = await loadFile(path)
     const arr = unique(data.split(','))
     let length = 0
@@ -213,7 +213,7 @@ router.post('/file', verifyAdminLogin, async ctx => {
           word: e.trim(),
           length: e.trim().length,
           classify: '默认',
-          showable: true,
+          showable,
         })
         await word.save()
         length++
@@ -528,6 +528,82 @@ router.put('/couples/:id', verifyAdminLogin, async ctx => {
     }
   }
 })
+
+router.post('/couples/upload', verifyAdminLogin, async ctx => {
+  try {
+    const writerStream = fs.createWriteStream(
+      process.cwd() + '/logs/couples_upload.log',
+      {
+        flags: 'a',
+      },
+    )
+    const clientIp = ctx.req.connection.remoteAddress
+    const { type, path, showable } = ctx.request.body
+    const data = await loadFile(path)
+    const arr = assemble(unique(data.split(',')), 2)
+    let length = 0
+    console.log(arr)
+    arr.forEach(async e => {
+      if (
+        (e[0].length < 1 || e[0] === '') &&
+        (e[1].length < 1 || e[1] === '')
+      ) {
+        return false
+      }
+      const stringWords = [
+        [e[0], e[1]],
+        [e[1], e[0]],
+      ]
+      const existedWord = await CoupleModel.findOne({
+        words: { $in: stringWords },
+      })
+      //防止重复
+      if (existedWord) {
+        ctx.body = {
+          code: '2001',
+          message: '情侣词语已存在',
+        }
+      } else {
+        const couple = new CoupleModel({
+          type,
+          words: [e[0], e[1]],
+          length: e[0].length,
+          showable,
+        })
+        await couple.save()
+      }
+    })
+    const jwt = new JWT(ctx.request.header.authorization)
+    const res = jwt.verifyToken()
+    writerStream.write(
+      `用户：${res.user} IP：${clientIp} 在${new Date()}上传了${
+        arr.length
+      }个情侣词，上传成功${length / 2}对\n`,
+      'UTF8',
+    )
+    writerStream.end()
+    ctx.body = {
+      code: '1000',
+      message: '上传成功',
+    }
+  } catch (err) {
+    console.log(err)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
+//一维转二维数组
+const assemble = (arr, size) => {
+  // arr是一维数组 size是二维数组包含几条数据
+  const twoDArr = []
+  for (let i = 0; i < arr.length; i = i + size) {
+    twoDArr.push(arr.slice(i, i + size))
+  }
+  return twoDArr // 新的二维数组
+}
 
 router.post('/couples/delete', verifyAdminLogin, async ctx => {
   try {
