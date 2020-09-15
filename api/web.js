@@ -6,7 +6,7 @@ router.get('/', async ctx => {
   await ctx.render('web/index')
 })
 
-router.get('/admin', async ctx => {
+router.get('/tTCBNH9TapINbuhp4pNKRJq4C4fhcD', async ctx => {
   await ctx.render('admin/index')
 })
 
