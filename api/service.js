@@ -1,6 +1,7 @@
 const Router = require('@koa/router')
 const ServiceModel = require('../model/Service')
 const FeedbackModel = require('../model/Feedback')
+const ApplicationModel = require('../model/Application')
 const { verifyAdminLogin } = require('../utils/verify')
 
 const router = new Router({ prefix: '/service' })
@@ -187,6 +188,17 @@ router.post('/feedback', async ctx => {
       code: '9000',
       message: '请求错误',
     }
+  }
+})
+
+router.get('/downloadlink', async ctx => {
+  const app = await ApplicationModel.find()
+  ctx.body = {
+    code: '1000',
+    message: '请求成功',
+    data: {
+      link: app[0].downloadLink,
+    },
   }
 })
 

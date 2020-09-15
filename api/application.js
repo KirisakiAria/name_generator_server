@@ -57,10 +57,20 @@ router.put('/:id', verifyAdminLogin, async ctx => {
       packageName,
       buildNumber,
       version,
+      downloadLink,
     } = ctx.request.body
     const result = await ApplicationModel.updateOne(
       { _id: id },
-      { $set: { secret, appName, packageName, buildNumber, version } },
+      {
+        $set: {
+          secret,
+          appName,
+          packageName,
+          buildNumber,
+          version,
+          downloadLink,
+        },
+      },
     )
     if (result.ok == 1 && result.nModified == 1) {
       ctx.body = {
