@@ -20,7 +20,7 @@ router.post('/login', verifyAppBaseInfo, async ctx => {
         flags: 'a',
       },
     )
-    writerStream.on('error', function (err) {
+    writerStream.on('error', err => {
       console.log(err.stack)
     })
     const clientIp = ctx.req.connection.remoteAddress
@@ -72,7 +72,7 @@ router.post('/register', verifyAppBaseInfo, async ctx => {
       },
     )
 
-    writerStream.on('error', function (err) {
+    writerStream.on('error', err => {
       console.log(err.stack)
     })
     const clientIp = ctx.req.connection.remoteAddress
@@ -184,7 +184,7 @@ router.post('/changepassword', verifyAppBaseInfo, async ctx => {
       },
     )
 
-    writerStream.on('error', function (err) {
+    writerStream.on('error', err => {
       console.log(err.stack)
     })
     const clientIp = ctx.req.connection.remoteAddress
@@ -611,7 +611,7 @@ router.delete('/:id', verifyAdminLogin, async ctx => {
         flags: 'a',
       },
     )
-    writerStream.on('error', function (err) {
+    writerStream.on('error', err => {
       console.log(err.stack)
     })
     const clientIp = ctx.req.connection.remoteAddress

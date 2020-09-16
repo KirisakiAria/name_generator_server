@@ -14,7 +14,7 @@ router.post('/login', async ctx => {
         flags: 'a',
       },
     )
-    writerStream.on('error', function (err) {
+    writerStream.on('error', err => {
       console.log(err.stack)
     })
 

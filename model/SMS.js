@@ -6,7 +6,7 @@ const smsSchema = new Schema({
   authCode: Number, //验证码
   clientIp: String, // 客户端 ip
   sendCount: Number, // 发送次数
-  lastTime: Number, // 最后一次的时间戳
+  lastTime: Date, // 最后一次的时间戳
 })
 
 const SMS = mongoose.model('SMS', smsSchema)
