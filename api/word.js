@@ -24,7 +24,7 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
     }).skip(randomIndex)
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
-    if (res.user) {
+    if (res.user && data) {
       await UserModel.findOne({ tel: res.user }, (err, res) => {
         if (err) {
           console.log(err)
