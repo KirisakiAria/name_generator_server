@@ -59,6 +59,11 @@ router.post('/login', async ctx => {
           message: '帐号或密码错误',
         }
       }
+    } else {
+      ctx.body = {
+        code: '3001',
+        message: '帐号或密码错误',
+      }
     }
   } catch (err) {
     console.log(err)
