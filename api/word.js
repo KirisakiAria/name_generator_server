@@ -25,21 +25,21 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
     if (res.user && data) {
-      await UserModel.findOne({ tel: res.user }, (err, res) => {
+      await UserModel.findOne({ tel: res.user }, (err, user) => {
         if (err) {
           console.log(err)
         } else {
-          res.history.unshift({
+          user.history.unshift({
             type,
             length,
             word: data.word,
           })
-          if (res.history.length > 200) {
-            for (let i = res.history.length - 200; i > 0; i--) {
-              res.history.shift()
+          if (user.history.length > 200) {
+            for (let i = user.history.length - 200; i > 0; i--) {
+              user.history.shift()
             }
           }
-          res.save()
+          user.save()
         }
       })
     }
