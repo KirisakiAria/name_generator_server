@@ -192,13 +192,25 @@ router.post('/feedback', async ctx => {
 })
 
 router.get('/downloadlink', async ctx => {
-  const app = await ApplicationModel.find()
-  ctx.body = {
-    code: '1000',
-    message: '请求成功',
-    data: {
-      link: app[0].downloadLink,
-    },
+  try {
+    const app = await ApplicationModel.find()
+    await ApplicationModel.updateOne(
+      { _id: app[0]._id },
+      { $inc: { downloadTimes: 1 } },
+    )
+    ctx.body = {
+      code: '1000',
+      message: '请求成功',
+      data: {
+        link: app[0].downloadLink,
+      },
+    }
+  } catch (err) {
+    console.log(err)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
   }
 })
 

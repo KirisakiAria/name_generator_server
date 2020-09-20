@@ -8,6 +8,7 @@ const applicationSchema = new Schema({
   buildNumber: String,
   version: String,
   downloadLink: String,
+  downloadTimes: Number,
 })
 
 const Application = mongoose.model('Application', applicationSchema)
