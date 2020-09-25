@@ -74,12 +74,29 @@ router.get('/usage', async ctx => {
   }
 })
 
+router.get('/update', async ctx => {
+  try {
+    const data = await ServiceModel.find()
+    ctx.body = {
+      code: '1000',
+      message: '请求成功',
+      data: data[0].update,
+    }
+  } catch (err) {
+    console.log(err)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
 router.put('/:id', verifyAdminLogin, async ctx => {
   try {
-    const { privacyPolicy, terms, usage } = ctx.request.body
+    const { privacyPolicy, terms, usage, update } = ctx.request.body
     const result = await ServiceModel.updateOne(
       { _id: ctx.params.id },
-      { $set: { privacyPolicy, terms, usage } },
+      { $set: { privacyPolicy, terms, usage, update } },
     )
     if (result.ok == 1 && result.nModified == 1) {
       ctx.body = {

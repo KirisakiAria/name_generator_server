@@ -5,6 +5,7 @@ const serviceSchema = new Schema({
   privacyPolicy: String,
   terms: String,
   usage: String,
+  update: String,
 })
 
 const Service = mongoose.model('Service', serviceSchema)

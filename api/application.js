@@ -32,11 +32,13 @@ router.get('/update', verifyAppBaseInfo, async ctx => {
       ctx.body = {
         code: '1000',
         message: '发现新版本，请到APP市场或官网下载更新',
+        new: false,
       }
     } else {
       ctx.body = {
         code: '1000',
         message: '您的版本已经是最新',
+        new: true,
       }
     }
   } catch (err) {
