@@ -9,19 +9,38 @@ const UserModel = require('../model/User')
 const CoupleModel = require('../model/Couple')
 const { verifyAppBaseInfo, verifyAdminLogin } = require('../utils/verify')
 
+const findRandomWord = async (Model, count, length) => {
+  const randomIndex = Math.floor(Math.random() * count)
+  let data = await Model.findOne({
+    length: Number.parseInt(length),
+    showable: true,
+  }).skip(randomIndex)
+  return data
+}
+
 router.post('/random', verifyAppBaseInfo, async ctx => {
   try {
+    const threshold = 100
+    let data
     const { type, length } = ctx.request.body
     const Model = selectModel(type)
     const count = await Model.find({
       length: Number.parseInt(length),
       showable: true,
     }).countDocuments()
-    const randomIndex = Math.floor(Math.random() * count)
-    let data = await Model.findOne({
-      length: Number.parseInt(length),
-      showable: true,
-    }).skip(randomIndex)
+    data = await findRandomWord(Model, count, length)
+    //防止查词重复（阈值100）
+    while (ctx.session.words && ctx.session.words.includes(data.word)) {
+      data = await findRandomWord(Model, count, length)
+    }
+    if (ctx.session.words) {
+      ctx.session.words.push(data.word)
+    } else {
+      ctx.session.words = [data.word]
+    }
+    if (ctx.session.words.length > threshold) {
+      ctx.session.words.shift()
+    }
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
     if (res.user && data) {

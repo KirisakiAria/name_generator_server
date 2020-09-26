@@ -32,7 +32,7 @@ const sendCode = (templateId, tel, ctx) => {
       smsSign,
       '',
       '',
-      async (err, res, resData) => {
+      async err => {
         if (err) {
           reject(err)
         } else {
