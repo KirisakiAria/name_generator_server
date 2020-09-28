@@ -140,25 +140,31 @@ router.get('/', verifyAdminLogin, async ctx => {
 router.post('/', verifyAdminLogin, async ctx => {
   try {
     const { word, type, classify, showable } = ctx.request.body
+    const arr = unique(word.split(','))
     const Model = selectModel(type)
-    const existedWord = await Model.findOne({ word })
-    if (existedWord) {
-      ctx.body = {
-        code: '2001',
-        message: '词语已存在',
+    arr.forEach(async e => {
+      if (e.length < 1 || e === '') {
+        return false
       }
-    } else {
-      const wordObj = new Model({
-        word: word,
-        length: word.length,
-        classify,
-        showable,
+      const existedWord = await Model.findOne({
+        word: e.trim(),
       })
-      await wordObj.save()
-      ctx.body = {
-        code: '1000',
-        message: '添加成功',
+      //防止重复
+      if (existedWord) {
+        return false
+      } else {
+        const word = new Model({
+          word: e.trim(),
+          length: e.trim().length,
+          classify,
+          showable,
+        })
+        await word.save()
       }
+    })
+    ctx.body = {
+      code: '1000',
+      message: '添加成功',
     }
   } catch (err) {
     console.log(err)
@@ -213,6 +219,7 @@ router.post('/upload', verifyAdminLogin, async ctx => {
     )
     const clientIp = ctx.req.connection.remoteAddress
     const { type, path, showable } = ctx.request.body
+    const Model = selectModel(type)
     const data = await loadFile(path)
     const arr = unique(data.split(','))
     let length = 0
@@ -220,7 +227,6 @@ router.post('/upload', verifyAdminLogin, async ctx => {
       if (e.length < 1 || e === '') {
         return false
       }
-      const Model = selectModel(type)
       const existedWord = await Model.findOne({
         word: e.trim(),
       })
