@@ -20,7 +20,7 @@ const findRandomWord = async (Model, count, length) => {
 
 router.post('/random', verifyAppBaseInfo, async ctx => {
   try {
-    const threshold = 100
+    const threshold = 50
     let data
     const { type, length } = ctx.request.body
     const Model = selectModel(type)
@@ -29,7 +29,7 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
       showable: true,
     }).countDocuments()
     data = await findRandomWord(Model, count, length)
-    //防止查词重复（阈值100）
+    //防止查词重复（阈值50）
     while (ctx.session.words && ctx.session.words.includes(data.word)) {
       data = await findRandomWord(Model, count, length)
     }
