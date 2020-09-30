@@ -1,7 +1,8 @@
 const fs = require('fs')
 const zlib = require('zlib')
 const axios = require('axios')
-const parser = require('xml2json')
+const parser = require('fast-xml-parser')
+const he = require('he')
 const Router = require('@koa/router')
 const router = new Router({ prefix: '/word' })
 const JWT = require('../utils/jwt')
@@ -83,8 +84,27 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
   }
 })
 
+const parseOptions = {
+  attributeNamePrefix: '',
+  attrNodeName: 'attr', //default is 'false'
+  textNodeName: '#text',
+  ignoreAttributes: false,
+  ignoreNameSpace: false,
+  allowBooleanAttributes: false,
+  parseNodeValue: true,
+  parseAttributeValue: false,
+  trimValues: true,
+  cdataTagName: '__cdata', //default is 'false'
+  cdataPositionChar: '\\c',
+  parseTrueNumberOnly: false,
+  arrayMode: false, //"strict"
+  attrValueProcessor: val => he.decode(val, { isAttributeValue: true }), //default is a=>a
+  tagValueProcessor: val => he.decode(val), //default is a=>a
+  stopNodes: ['parse-me-as-string'],
+}
+
 const getRomaji = async (type, word) => {
-  if (type !== '日式') {
+  if (type == '日式') {
     let romaji = ''
     const options = {
       method: 'POST',
@@ -94,10 +114,14 @@ const getRomaji = async (type, word) => {
     }
     const res = await axios(options)
     if (res.status == 200) {
-      const json = parser.toJson(res.data)
-      romaji = JSON.parse(json).ul.li.span.title
+      const json = parser.parse(res.data, parseOptions)
+      romaji = json?.ul?.li?.span?.attr?.title
     }
-    return romaji
+    if (romaji) {
+      return romaji
+    } else {
+      return ''
+    }
   } else {
     return ''
   }
