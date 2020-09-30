@@ -1,5 +1,7 @@
 const fs = require('fs')
 const zlib = require('zlib')
+const axios = require('axios')
+const parser = require('xml2json')
 const Router = require('@koa/router')
 const router = new Router({ prefix: '/word' })
 const JWT = require('../utils/jwt')
@@ -62,16 +64,14 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
         }
       })
     }
-    if (!data) {
-      data = {
-        word: '无',
-      }
-    }
+    //罗马字
+    const romaji = await getRomaji(type, data.word)
     ctx.body = {
       code: '1000',
       message: '请求成功',
       data: {
         word: data.word,
+        romaji,
       },
     }
   } catch (err) {
@@ -82,6 +82,26 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
     }
   }
 })
+
+const getRomaji = async (type, word) => {
+  if (type !== '日式') {
+    let romaji = ''
+    const options = {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      data: `mode=japanese&q=${word}`,
+      url: 'http://www.kawa.net/works/ajax/romanize/romanize.cgi',
+    }
+    const res = await axios(options)
+    if (res.status == 200) {
+      const json = parser.toJson(res.data)
+      romaji = JSON.parse(json).ul.li.span.title
+    }
+    return romaji
+  } else {
+    return ''
+  }
+}
 
 const selectModel = type => {
   if (type == '中国风') {
