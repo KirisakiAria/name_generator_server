@@ -251,7 +251,7 @@ router.get('/history', verifyAppBaseInfo, verifyUserLogin, async ctx => {
           code: '1000',
           message: '请求成功',
           data: {
-            list: user.history,
+            list: user.history.slice(page * 15, page * 15 + 15),
           },
         }
       } else if (!user?.vip) {
@@ -296,7 +296,7 @@ router.get('/favourite', verifyAppBaseInfo, verifyUserLogin, async ctx => {
           code: '1000',
           message: '请求成功',
           data: {
-            list: user.favourites,
+            list: user.favourites.slice(page * 15, page * 15 + 15),
           },
         }
       } else if (!user?.vip) {
