@@ -25,7 +25,7 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
   try {
     const threshold = 50
     let data
-    const { type, length } = ctx.request.body
+    const { type, length, ifRomaji } = ctx.request.body
     const Model = selectModel(type)
     const count = await Model.find({
       length: Number.parseInt(length),
@@ -66,7 +66,7 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
       })
     }
     //罗马字
-    const romaji = await getRomaji(type, data.word)
+    const romaji = await getRomaji(ifRomaji, type, data.word)
     ctx.body = {
       code: '1000',
       message: '请求成功',
@@ -103,8 +103,8 @@ const parseOptions = {
   stopNodes: ['parse-me-as-string'],
 }
 
-const getRomaji = async (type, word) => {
-  if (type == '日式') {
+const getRomaji = async (ifRomaji, type, word) => {
+  if (ifRomaji && type == '日式') {
     let romaji = ''
     const options = {
       method: 'POST',
