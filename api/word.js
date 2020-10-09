@@ -115,7 +115,6 @@ const getRomaji = async (ifRomaji, type, word) => {
     const res = await axios(options)
     if (res.status == 200) {
       const json = parser.parse(res.data, parseOptions)
-      console.log(json?.ul?.li?.span)
       if (json?.ul?.li?.span.length) {
         json.ul.li.span.forEach(e => {
           romaji += e.attr?.title.split('/')[0]
