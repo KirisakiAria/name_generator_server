@@ -42,8 +42,8 @@ const verifyAdminLogin = async (ctx, next) => {
     }
   } else {
     ctx.body = {
-      code: res.code,
-      message: res.message,
+      code: '3007',
+      message: '登陆状态失效，请重新登录',
     }
   }
 }
@@ -70,8 +70,8 @@ const verifyUserLogin = async (ctx, next) => {
     }
   } else {
     ctx.body = {
-      code: res.code,
-      message: res.message,
+      code: '3007',
+      message: '登陆状态失效，请重新登录',
     }
   }
 }

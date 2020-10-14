@@ -84,6 +84,44 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
   }
 })
 
+router.post('/search', verifyAppBaseInfo, async ctx => {
+  try {
+    const { searchContent, pageSize, currentPage } = ctx.request.body
+    if (searchContent == '') {
+      ctx.body = {
+        code: '2003',
+        message: '请输入关键字',
+      }
+    } else {
+      const pattern = new RegExp(searchContent, 'i')
+      const conditions = {
+        word: pattern,
+        showable: true,
+      }
+      const chineselist = await ChineseWordModel.find(conditions)
+        .skip(parseInt(pageSize / 2) * parseInt(currentPage))
+        .limit(parseInt(pageSize))
+      const japaneselist = await JapaneseWordModel.find(conditions)
+        .skip(parseInt(pageSize / 2) * parseInt(currentPage))
+        .limit(parseInt(pageSize))
+      console.log(chineselist)
+      ctx.body = {
+        code: '1000',
+        message: '请求成功',
+        data: {
+          list: chineselist.concat(japaneselist),
+        },
+      }
+    }
+  } catch (err) {
+    console.log(err)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
 const parseOptions = {
   attributeNamePrefix: '',
   attrNodeName: 'attr', //default is 'false'
@@ -156,52 +194,6 @@ router.get('/', verifyAdminLogin, async ctx => {
     let conditions = {
       word: pattern,
       length: Number.parseInt(length),
-    }
-    if (showable !== 'all') {
-      conditions = Object.assign(conditions, {
-        showable,
-      })
-    }
-    const list = await Model.find(conditions)
-      .sort({ _id: -1 })
-      .skip(parseInt(pageSize) * parseInt(currentPage))
-      .limit(parseInt(pageSize))
-    const total = await Model.find({
-      word: pattern,
-      length: Number.parseInt(length),
-    }).countDocuments()
-    ctx.body = {
-      code: '1000',
-      message: '请求成功',
-      data: {
-        list,
-        total,
-      },
-    }
-  } catch (err) {
-    console.log(err)
-    ctx.body = {
-      code: '9000',
-      message: '请求错误',
-    }
-  }
-})
-
-router.get('/search', verifyAdminLogin, async ctx => {
-  try {
-    const {
-      type,
-      length,
-      searchContent,
-      pageSize,
-      currentPage,
-    } = ctx.request.query
-    const Model = selectModel(type)
-    const pattern = new RegExp(searchContent, 'i')
-    let conditions = {
-      word: pattern,
-      length: Number.parseInt(length),
-      showable: true,
     }
     if (showable !== 'all') {
       conditions = Object.assign(conditions, {
