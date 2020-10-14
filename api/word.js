@@ -187,6 +187,52 @@ router.get('/', verifyAdminLogin, async ctx => {
   }
 })
 
+router.get('/search', verifyAdminLogin, async ctx => {
+  try {
+    const {
+      type,
+      length,
+      searchContent,
+      pageSize,
+      currentPage,
+    } = ctx.request.query
+    const Model = selectModel(type)
+    const pattern = new RegExp(searchContent, 'i')
+    let conditions = {
+      word: pattern,
+      length: Number.parseInt(length),
+      showable: true,
+    }
+    if (showable !== 'all') {
+      conditions = Object.assign(conditions, {
+        showable,
+      })
+    }
+    const list = await Model.find(conditions)
+      .sort({ _id: -1 })
+      .skip(parseInt(pageSize) * parseInt(currentPage))
+      .limit(parseInt(pageSize))
+    const total = await Model.find({
+      word: pattern,
+      length: Number.parseInt(length),
+    }).countDocuments()
+    ctx.body = {
+      code: '1000',
+      message: '请求成功',
+      data: {
+        list,
+        total,
+      },
+    }
+  } catch (err) {
+    console.log(err)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
 router.post('/', verifyAdminLogin, async ctx => {
   try {
     const { word, type, classify, showable } = ctx.request.body
