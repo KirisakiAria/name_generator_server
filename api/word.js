@@ -97,14 +97,15 @@ router.post('/search', verifyAppBaseInfo, async ctx => {
       const conditions = {
         word: pattern,
         showable: true,
+        length: { $lte: 5 },
       }
       const chineselist = await ChineseWordModel.find(conditions)
         .skip(parseInt(pageSize / 2) * parseInt(currentPage))
-        .limit(parseInt(pageSize))
+        .limit(parseInt(pageSize / 2))
       const japaneselist = await JapaneseWordModel.find(conditions)
         .skip(parseInt(pageSize / 2) * parseInt(currentPage))
-        .limit(parseInt(pageSize))
-      console.log(chineselist)
+        .limit(parseInt(pageSize / 2))
+      //await dalay()
       ctx.body = {
         code: '1000',
         message: '请求成功',
