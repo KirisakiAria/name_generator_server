@@ -192,7 +192,7 @@ router.post('/feedback', async ctx => {
       uid,
       tel,
       content,
-      time: new Date(),
+      date: new Date(),
     })
     await data.save()
     ctx.body = {
