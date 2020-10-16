@@ -132,7 +132,7 @@ router.get('/feedback', verifyAdminLogin, async ctx => {
     if (startTime && endTime) {
       condition = {
         tel: pattern,
-        time: { $lte: endTime, $gte: startTime },
+        date: { $lte: endTime, $gte: startTime },
       }
     } else {
       condition = {
@@ -169,7 +169,7 @@ router.post('/feedback', async ctx => {
       username,
       email,
       content,
-      time: new Date(),
+      date: new Date(),
     })
     await data.save()
     ctx.body = {
