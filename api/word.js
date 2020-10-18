@@ -312,27 +312,31 @@ router.post('/upload', verifyAdminLogin, async ctx => {
     const data = await loadFile(path)
     const arr = unique(data.split(','))
     let length = 0
-    arr.forEach(async e => {
-      if (e.length < 1 || e === '') {
-        return false
-      }
-      const existedWord = await Model.findOne({
-        word: e.trim(),
-      })
-      //防止重复
-      if (existedWord) {
-        return false
-      } else {
-        const word = new Model({
-          word: e.trim(),
-          length: e.trim().length,
-          classify: '默认',
-          showable,
+    //循环次数
+    const times = Array.from({ length: arr.length }, (v, i) => i)
+    await (async () => {
+      for (let i of times) {
+        if (arr[i].length < 1 || arr[i] === '') {
+          return false
+        }
+        const existedWord = await Model.findOne({
+          word: arr[i].trim(),
         })
-        await word.save()
-        length++
+        //防止重复
+        if (existedWord) {
+          return false
+        } else {
+          const word = new Model({
+            word: arr[i].trim(),
+            length: arr[i].trim().length,
+            classify: '默认',
+            showable,
+          })
+          await word.save()
+          length++
+        }
       }
-    })
+    })()
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
     writerStream.write(
@@ -656,37 +660,43 @@ router.post('/couples/upload', verifyAdminLogin, async ctx => {
     const data = await loadFile(path)
     const arr = assemble(unique(data.split(',')), 2)
     let length = 0
-    console.log(arr)
-    arr.forEach(async e => {
-      if (
-        (e[0].length < 1 || e[0] === '') &&
-        (e[1].length < 1 || e[1] === '')
-      ) {
-        return false
-      }
-      const stringWords = [
-        [e[0], e[1]],
-        [e[1], e[0]],
-      ]
-      const existedWord = await CoupleModel.findOne({
-        words: { $in: stringWords },
-      })
-      //防止重复
-      if (existedWord) {
-        ctx.body = {
-          code: '2001',
-          message: '情侣词语已存在',
+    //循环次数
+    const times = Array.from({ length: arr.length }, (v, i) => i)
+    await (async () => {
+      for (let i of times) {
+        if (
+          arr[i][0].length < 1 ||
+          arr[i][0] === '' ||
+          arr[i][1].length < 1 ||
+          arr[i][1] === ''
+        ) {
+          return false
         }
-      } else {
-        const couple = new CoupleModel({
-          type,
-          words: [e[0], e[1]],
-          length: e[0].length,
-          showable,
+        const stringWords = [
+          [arr[i][0], arr[i][1]],
+          [arr[i][1], arr[i][0]],
+        ]
+        const existedWord = await CoupleModel.findOne({
+          words: { $in: stringWords },
         })
-        await couple.save()
+        //防止重复
+        if (existedWord) {
+          ctx.body = {
+            code: '2001',
+            message: '情侣词语已存在',
+          }
+        } else {
+          const couple = new CoupleModel({
+            type,
+            words: [arr[i][0], arr[i][1]],
+            length: arr[i][0].length,
+            showable,
+          })
+          await couple.save()
+          length++
+        }
       }
-    })
+    })()
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
     writerStream.write(

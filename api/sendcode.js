@@ -113,7 +113,7 @@ router.post('/', verifyAppBaseInfo, async ctx => {
           message: '用户已存在',
         }
       } else {
-        //注册模板id 721913
+        //注册模板id 722528
         try {
           await sendCode(722528, tel, ctx)
           ctx.body = {
