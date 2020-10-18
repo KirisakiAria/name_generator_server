@@ -78,11 +78,12 @@ router.get('/', verifyAdminLogin, async ctx => {
 
 router.post('/', verifyAdminLogin, async ctx => {
   try {
-    const { chinese, japanese, date } = ctx.request.body
+    const { chinese, japanese } = ctx.request.body
     const data = new InspirationModel({
       chinese,
       japanese,
-      date,
+      date: new Date(),
+      likedUsers: [],
     })
     await data.save()
     ctx.body = {

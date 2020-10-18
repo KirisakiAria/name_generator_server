@@ -13,6 +13,7 @@ const InspirationSchema = new Schema({
     content: String,
   },
   date: Date,
+  likedUsers: [String],
 })
 
 const Inspiration = mongoose.model('Inspiration', InspirationSchema)
