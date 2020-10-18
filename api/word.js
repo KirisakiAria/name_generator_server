@@ -99,13 +99,18 @@ router.post('/search', verifyAppBaseInfo, async ctx => {
         showable: true,
         length: { $lte: 5 },
       }
-      const chineselist = await ChineseWordModel.find(conditions)
+      let chineselist = await ChineseWordModel.find(conditions)
         .skip(parseInt(pageSize / 2) * parseInt(currentPage))
         .limit(parseInt(pageSize / 2))
-      const japaneselist = await JapaneseWordModel.find(conditions)
+      let japaneselist = await JapaneseWordModel.find(conditions)
         .skip(parseInt(pageSize / 2) * parseInt(currentPage))
         .limit(parseInt(pageSize / 2))
-      //await dalay()
+      chineselist = chineselist.map(e =>
+        Object.assign(e.toObject(), { type: '中国风' }),
+      )
+      japaneselist = japaneselist.map(e =>
+        Object.assign(e.toObject(), { type: '日式' }),
+      )
       ctx.body = {
         code: '1000',
         message: '请求成功',

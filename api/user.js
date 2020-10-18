@@ -331,7 +331,7 @@ router.get('/favourite', verifyAppBaseInfo, verifyUserLogin, async ctx => {
 
 router.post('/favourite', verifyAppBaseInfo, verifyUserLogin, async ctx => {
   try {
-    const { type, number, word } = ctx.request.body
+    const { type, length, word } = ctx.request.body
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
     let success
@@ -347,7 +347,7 @@ router.post('/favourite', verifyAppBaseInfo, verifyUserLogin, async ctx => {
             if (index == -1) {
               res.favourites.unshift({
                 type,
-                number,
+                length,
                 word,
               })
             }
