@@ -7,7 +7,7 @@ const router = new Router({ prefix: '/inspiration' })
 
 router.get('/today', verifyAppBaseInfo, async ctx => {
   try {
-    const data = await InspirationModel.find()
+    const data = await InspirationModel.find().sort({ _id: -1 })
     ctx.body = {
       code: '1000',
       message: '请求成功',
