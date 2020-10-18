@@ -1,4 +1,5 @@
 const fs = require('fs')
+const moment = require('moment')
 const zlib = require('zlib')
 const axios = require('axios')
 const parser = require('fast-xml-parser')
@@ -345,9 +346,9 @@ router.post('/upload', verifyAdminLogin, async ctx => {
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
     writerStream.write(
-      `用户：${res.user} IP：${clientIp} 在${new Date()}上传了${
-        arr.length
-      }个词语，上传成功${length}个\n`,
+      `用户：${res.user} IP：${clientIp} 在${moment()
+        .add(8, 'h')
+        .format()}上传了${arr.length}个词语，上传成功${length}个\n`,
       'UTF8',
     )
     writerStream.end()
@@ -705,9 +706,9 @@ router.post('/couples/upload', verifyAdminLogin, async ctx => {
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
     writerStream.write(
-      `用户：${res.user} IP：${clientIp} 在${new Date()}上传了${
-        arr.length
-      }个情侣词，上传成功${length / 2}对\n`,
+      `用户：${res.user} IP：${clientIp} 在${moment()
+        .add(8, 'h')
+        .format()}上传了${arr.length}个情侣词，上传成功${length / 2}对\n`,
       'UTF8',
     )
     writerStream.end()

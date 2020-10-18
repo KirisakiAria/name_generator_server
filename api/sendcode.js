@@ -1,4 +1,5 @@
 const fs = require('fs')
+const moment = require('moment')
 const QcloudSms = require('qcloudsms_js')
 const Router = require('@koa/router')
 const UserModel = require('../model/User')
@@ -47,7 +48,7 @@ const sendCode = (templateId, tel, ctx) => {
               {
                 $set: {
                   authCode: code,
-                  lastTime: new Date(),
+                  lastTime: moment().add(8, 'h').format(),
                 },
               },
             )
@@ -60,7 +61,7 @@ const sendCode = (templateId, tel, ctx) => {
               authCode: code, //验证码
               clientIp, // 客户端 ip
               sendCount: 1, // 发送次数
-              lastTime: new Date(), // 当前日期
+              lastTime: moment().add(8, 'h').format(), // 当前日期
             })
             await sms.save()
           }

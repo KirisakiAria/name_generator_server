@@ -1,4 +1,5 @@
 const Router = require('@koa/router')
+const moment = require('moment')
 const ServiceModel = require('../model/Service')
 const FeedbackModel = require('../model/Feedback')
 const ApplicationModel = require('../model/Application')
@@ -169,7 +170,7 @@ router.post('/feedback', async ctx => {
       username,
       email,
       content,
-      date: new Date(),
+      date: moment().add(8, 'h').format(),
     })
     await data.save()
     ctx.body = {
@@ -192,7 +193,7 @@ router.post('/feedback', async ctx => {
       uid,
       tel,
       content,
-      date: new Date(),
+      date: moment().add(8, 'h').format(),
     })
     await data.save()
     ctx.body = {

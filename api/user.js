@@ -1,4 +1,5 @@
 const fs = require('fs')
+const moment = require('moment')
 const Router = require('@koa/router')
 const UserModel = require('../model/User')
 const SMSModel = require('../model/SMS')
@@ -33,7 +34,7 @@ router.post('/login', verifyAppBaseInfo, async ctx => {
       })
       const token = jwt.generateToken()
       writerStream.write(
-        `用户：${tel} IP：${clientIp} 在${new Date()}登陆\n`,
+        `用户：${tel} IP：${clientIp} 在${moment().add(8, 'h').format()}登陆\n`,
         'UTF8',
       )
       ctx.body = {
@@ -102,7 +103,7 @@ router.post('/register', verifyAppBaseInfo, async ctx => {
           tel,
           password: encrypt(password),
           avatar: '/avatar/avatar.png',
-          date: timeFormatter(new Date()),
+          date: timeFormatter(moment().add(8, 'h').format()),
           username: '彼岸自在',
           vip_start: 0,
           vip_expiry: 0,
@@ -110,7 +111,9 @@ router.post('/register', verifyAppBaseInfo, async ctx => {
         })
         await newUser.save()
         writerStream.write(
-          `用户：${tel} IP：${clientIp} 在${new Date()}注册\n`,
+          `用户：${tel} IP：${clientIp} 在${moment()
+            .add(8, 'h')
+            .format()}注册\n`,
           'UTF8',
         )
         writerStream.end()
@@ -214,7 +217,9 @@ router.post('/changepassword', verifyAppBaseInfo, async ctx => {
         )
         if (result.ok == 1 && result.nModified == 1) {
           writerStream.write(
-            `用户：${tel} IP：${clientIp} 在${new Date()}修改密码\n`,
+            `用户：${tel} IP：${clientIp} 在${moment()
+              .add(8, 'h')
+              .format()}修改密码\n`,
             'UTF8',
           )
           writerStream.end()
@@ -541,7 +546,7 @@ router.post('/', verifyAdminLogin, async ctx => {
         vip,
         vip_start,
         vip_expiry,
-        date: timeFormatter(new Date()),
+        date: timeFormatter(moment().add(8, 'h').format()),
       })
       await newUser.save()
       ctx.body = {
@@ -619,7 +624,9 @@ router.delete('/:id', verifyAdminLogin, async ctx => {
     const result = await UserModel.deleteOne({ _id: ctx.params.id })
     if (result.ok == 1 && result.deletedCount == 1) {
       writerStream.write(
-        `用户：${tel} IP：${clientIp} 在${new Date()}被删除\n`,
+        `用户：${tel} IP：${clientIp} 在${moment()
+          .add(8, 'h')
+          .format()}被删除\n`,
         'UTF8',
       )
       writerStream.end()

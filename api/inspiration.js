@@ -1,4 +1,5 @@
 const Router = require('@koa/router')
+const moment = require('moment')
 const InspirationModel = require('../model/Inspiration')
 const { verifyAppBaseInfo, verifyAdminLogin } = require('../utils/verify')
 
@@ -82,7 +83,7 @@ router.post('/', verifyAdminLogin, async ctx => {
     const data = new InspirationModel({
       chinese,
       japanese,
-      date: new Date(),
+      date: moment().add(8, 'h').format(),
       likedUsers: [],
     })
     await data.save()

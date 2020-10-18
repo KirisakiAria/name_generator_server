@@ -1,4 +1,5 @@
 const fs = require('fs')
+const moment = require('moment')
 const speakeasy = require('speakeasy')
 const JWT = require('../utils/jwt')
 const Router = require('@koa/router')
@@ -40,7 +41,9 @@ router.post('/login', async ctx => {
         })
         const token = jwt.generateToken()
         writerStream.write(
-          `用户：${username} IP：${clientIp} 在${new Date()}登陆后台\n`,
+          `用户：${username} IP：${clientIp} 在${moment()
+            .add(8, 'h')
+            .format()}登陆后台\n`,
           'UTF8',
         )
         ctx.body = {
