@@ -4,7 +4,6 @@ const Router = require('@koa/router')
 const UserModel = require('../model/User')
 const SMSModel = require('../model/SMS')
 const JWT = require('../utils/jwt')
-const timeFormatter = require('../utils/formatter').time
 const router = new Router({ prefix: '/user' })
 const encrypt = require('../utils/encryption')
 const {
@@ -103,7 +102,7 @@ router.post('/register', verifyAppBaseInfo, async ctx => {
           tel,
           password: encrypt(password),
           avatar: '/avatar/avatar.png',
-          date: timeFormatter(moment().add(8, 'h').format()),
+          date: moment().add(8, 'h').format('YYYY-MM-DD'),
           username: '彼岸自在',
           vip_start: 0,
           vip_expiry: 0,
@@ -542,7 +541,7 @@ router.post('/', verifyAdminLogin, async ctx => {
         vip,
         vip_start,
         vip_expiry,
-        date: timeFormatter(moment().add(8, 'h').format()),
+        date: moment().add(8, 'h').format('YYYY-MM-DD'),
       })
       await newUser.save()
       ctx.body = {
