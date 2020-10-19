@@ -34,7 +34,7 @@ router.post('/login', verifyAppBaseInfo, async ctx => {
       })
       const token = jwt.generateToken()
       writerStream.write(
-        `用户：${tel} IP：${clientIp} 在${moment().add(8, 'h').format()}登陆\n`,
+        `用户：${tel} IP：${clientIp} 在${moment().format()}登陆\n`,
         'UTF8',
       )
       ctx.body = {
@@ -111,9 +111,7 @@ router.post('/register', verifyAppBaseInfo, async ctx => {
         })
         await newUser.save()
         writerStream.write(
-          `用户：${tel} IP：${clientIp} 在${moment()
-            .add(8, 'h')
-            .format()}注册\n`,
+          `用户：${tel} IP：${clientIp} 在${moment().format()}注册\n`,
           'UTF8',
         )
         writerStream.end()
@@ -217,9 +215,7 @@ router.post('/changepassword', verifyAppBaseInfo, async ctx => {
         )
         if (result.ok == 1 && result.nModified == 1) {
           writerStream.write(
-            `用户：${tel} IP：${clientIp} 在${moment()
-              .add(8, 'h')
-              .format()}修改密码\n`,
+            `用户：${tel} IP：${clientIp} 在${moment().format()}修改密码\n`,
             'UTF8',
           )
           writerStream.end()
@@ -624,9 +620,7 @@ router.delete('/:id', verifyAdminLogin, async ctx => {
     const result = await UserModel.deleteOne({ _id: ctx.params.id })
     if (result.ok == 1 && result.deletedCount == 1) {
       writerStream.write(
-        `用户：${tel} IP：${clientIp} 在${moment()
-          .add(8, 'h')
-          .format()}被删除\n`,
+        `用户：${tel} IP：${clientIp} 在${moment().format()}被删除\n`,
         'UTF8',
       )
       writerStream.end()

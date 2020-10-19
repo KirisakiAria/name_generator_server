@@ -44,7 +44,6 @@ router.get('/today', verifyAppBaseInfo, async ctx => {
 
 router.put('/like/:id', verifyAppBaseInfo, verifyUserLogin, async ctx => {
   try {
-    console.log(11111111111)
     const { islike } = ctx.request.body
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
