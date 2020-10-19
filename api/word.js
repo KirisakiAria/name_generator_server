@@ -87,7 +87,7 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
 
 router.post('/search', verifyAppBaseInfo, async ctx => {
   try {
-    const { searchContent, pageSize, currentPage } = ctx.request.body
+    const { searchContent, currentPage } = ctx.request.body
     if (searchContent == '') {
       ctx.body = {
         code: '2003',
@@ -101,11 +101,11 @@ router.post('/search', verifyAppBaseInfo, async ctx => {
         length: { $lte: 5 },
       }
       let chineselist = await ChineseWordModel.find(conditions)
-        .skip(parseInt(pageSize / 2) * parseInt(currentPage))
-        .limit(parseInt(pageSize / 2))
+        .skip(10 * parseInt(currentPage))
+        .limit(10)
       let japaneselist = await JapaneseWordModel.find(conditions)
-        .skip(parseInt(pageSize / 2) * parseInt(currentPage))
-        .limit(parseInt(pageSize / 2))
+        .skip(10 * parseInt(currentPage))
+        .limit(10)
       chineselist = chineselist.map(e =>
         Object.assign(e.toObject(), { type: '中国风' }),
       )
