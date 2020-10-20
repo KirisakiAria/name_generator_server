@@ -64,7 +64,7 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
             length,
             word: data.word,
           })
-          if (user.history.length > 200) {
+          if (user.history.length > 500) {
             for (let i = user.history.length - 200; i > 0; i--) {
               user.history.pop()
             }
@@ -330,14 +330,14 @@ router.post('/upload', verifyAdminLogin, async ctx => {
     await (async () => {
       for (let i of times) {
         if (arr[i].length < 1 || arr[i] === '') {
-          return false
+          continue
         }
         const existedWord = await Model.findOne({
           word: arr[i].trim(),
         })
         //防止重复
         if (existedWord) {
-          return false
+          continue
         } else {
           const word = new Model({
             word: arr[i].trim(),
@@ -683,7 +683,7 @@ router.post('/couples/upload', verifyAdminLogin, async ctx => {
           arr[i][1].length < 1 ||
           arr[i][1] === ''
         ) {
-          return false
+          continue
         }
         const stringWords = [
           [arr[i][0], arr[i][1]],
@@ -694,10 +694,7 @@ router.post('/couples/upload', verifyAdminLogin, async ctx => {
         })
         //防止重复
         if (existedWord) {
-          ctx.body = {
-            code: '2001',
-            message: '情侣词语已存在',
-          }
+          continue
         } else {
           const couple = new CoupleModel({
             type,

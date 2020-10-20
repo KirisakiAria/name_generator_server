@@ -340,7 +340,7 @@ router.post('/favourite', verifyAppBaseInfo, verifyUserLogin, async ctx => {
         if (err) {
           console.log(err)
         } else {
-          if (res.favourites.length >= 300) {
+          if (res.favourites.length >= 500) {
             success = false
           } else {
             const index = res.favourites.findIndex(e => e.word === word)
