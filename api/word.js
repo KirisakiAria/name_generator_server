@@ -65,7 +65,7 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
             word: data.word,
           })
           if (user.history.length > 500) {
-            for (let i = user.history.length - 200; i > 0; i--) {
+            for (let i = user.history.length - 500; i > 0; i--) {
               user.history.pop()
             }
           }

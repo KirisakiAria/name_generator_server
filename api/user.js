@@ -363,7 +363,7 @@ router.post('/favourite', verifyAppBaseInfo, verifyUserLogin, async ctx => {
         } else {
           ctx.body = {
             code: '2003',
-            message: '收藏数已满，请先取之前的收藏',
+            message: '收藏网名数量已满',
           }
         }
       })
