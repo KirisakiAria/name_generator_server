@@ -66,7 +66,7 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
           })
           if (user.history.length > 200) {
             for (let i = user.history.length - 200; i > 0; i--) {
-              user.history.shift()
+              user.history.pop()
             }
           }
           user.save()
