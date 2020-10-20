@@ -52,6 +52,13 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
         if (err) {
           console.log(err)
         } else {
+          if (!user.history) {
+            ctx.body = {
+              code: '3007',
+              message: '登录状态失效，请重新登录',
+            }
+            return
+          }
           user.history.unshift({
             type,
             length,
@@ -101,11 +108,11 @@ router.post('/search', verifyAppBaseInfo, async ctx => {
         length: { $lte: 5 },
       }
       let chineselist = await ChineseWordModel.find(conditions)
-        .skip(10 * parseInt(currentPage))
-        .limit(10)
+        .skip(15 * parseInt(currentPage))
+        .limit(15)
       let japaneselist = await JapaneseWordModel.find(conditions)
-        .skip(10 * parseInt(currentPage))
-        .limit(10)
+        .skip(15 * parseInt(currentPage))
+        .limit(15)
       chineselist = chineselist.map(e =>
         Object.assign(e.toObject(), { type: '中国风' }),
       )

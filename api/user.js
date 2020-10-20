@@ -33,7 +33,7 @@ router.post('/login', verifyAppBaseInfo, async ctx => {
       })
       const token = jwt.generateToken()
       writerStream.write(
-        `用户：${tel} IP：${clientIp} 在${moment().format()}登陆\n`,
+        `用户：${tel} IP：${clientIp} 在${moment().format()}登录\n`,
         'UTF8',
       )
       ctx.body = {
@@ -163,7 +163,7 @@ router.post('/getdata', verifyAppBaseInfo, verifyUserLogin, async ctx => {
     } else {
       ctx.body = {
         code: '3007',
-        message: '登陆状态失效，请重新登录',
+        message: '登录状态失效，请重新登录',
       }
     }
   } catch (err) {
@@ -272,7 +272,7 @@ router.get('/history', verifyAppBaseInfo, verifyUserLogin, async ctx => {
     } else {
       ctx.body = {
         code: '3007',
-        message: '登陆状态失效，请重新登录',
+        message: '登录状态失效，请重新登录',
       }
     }
   } catch (err) {
@@ -317,7 +317,7 @@ router.get('/favourite', verifyAppBaseInfo, verifyUserLogin, async ctx => {
     } else {
       ctx.body = {
         code: '3007',
-        message: '登陆状态失效，请重新登录',
+        message: '登录状态失效，请重新登录',
       }
     }
   } catch (err) {

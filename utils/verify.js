@@ -25,7 +25,7 @@ const verifyAdminLogin = async (ctx, next) => {
   if (!ctx.request.header.authorization) {
     ctx.body = {
       code: '3007',
-      message: '登陆状态失效，请重新登录',
+      message: '登录状态失效，请重新登录',
     }
   }
   const jwt = new JWT(ctx.request.header.authorization)
@@ -43,7 +43,7 @@ const verifyAdminLogin = async (ctx, next) => {
   } else {
     ctx.body = {
       code: '3007',
-      message: '登陆状态失效，请重新登录',
+      message: '登录状态失效，请重新登录',
     }
   }
 }
@@ -53,7 +53,7 @@ const verifyUserLogin = async (ctx, next) => {
   if (!ctx.request.header.authorization) {
     ctx.body = {
       code: '3007',
-      message: '登陆状态失效，请重新登录',
+      message: '登录状态失效，请重新登录',
     }
   }
   const jwt = new JWT(ctx.request.header.authorization)
@@ -71,7 +71,7 @@ const verifyUserLogin = async (ctx, next) => {
   } else {
     ctx.body = {
       code: '3007',
-      message: '登陆状态失效，请重新登录',
+      message: '登录状态失效，请重新登录',
     }
   }
 }
@@ -80,7 +80,7 @@ const verifyLogin = async (ctx, next) => {
   if (!ctx.request.header.authorization) {
     ctx.body = {
       code: '3007',
-      message: '登陆状态失效，请重新登录',
+      message: '登录状态失效，请重新登录',
     }
   }
   const jwt = new JWT(ctx.request.header.authorization)
