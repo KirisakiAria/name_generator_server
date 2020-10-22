@@ -52,10 +52,10 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
         if (err) {
           console.log(err)
         } else {
-          if (!user.history) {
+          if (!user) {
             ctx.body = {
               code: '3007',
-              message: '登录状态失效，请重新登录',
+              message: '登录状态失效，请重新登录或彻底清除应用数据',
             }
             return
           }
