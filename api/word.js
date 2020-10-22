@@ -53,23 +53,20 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
           console.log(err)
         } else {
           if (!user) {
-            ctx.body = {
-              code: '3007',
-              message: '登录状态失效，请重新登录或彻底清除应用数据',
+            return false
+          } else {
+            user.history.unshift({
+              type,
+              length,
+              word: data.word,
+            })
+            if (user.history.length > 500) {
+              for (let i = user.history.length - 500; i > 0; i--) {
+                user.history.pop()
+              }
             }
-            return
+            user.save()
           }
-          user.history.unshift({
-            type,
-            length,
-            word: data.word,
-          })
-          if (user.history.length > 500) {
-            for (let i = user.history.length - 500; i > 0; i--) {
-              user.history.pop()
-            }
-          }
-          user.save()
         }
       })
     }
