@@ -88,11 +88,11 @@ router.put('/like/:id', verifyAppBaseInfo, verifyUserLogin, async ctx => {
 
 router.get('/history', verifyAppBaseInfo, async ctx => {
   try {
-    const { pageSize, page } = ctx.request.query
+    const { page } = ctx.request.query
     const list = await InspirationModel.find()
       .sort({ _id: -1 })
-      .skip(parseInt(pageSize) * parseInt(page))
-      .limit(parseInt(pageSize))
+      .skip(15 * parseInt(page))
+      .limit(15)
     const total = await InspirationModel.find().countDocuments()
     ctx.body = {
       code: '1000',
