@@ -102,7 +102,7 @@ router.post('/register', verifyAppBaseInfo, async ctx => {
           tel,
           password: encrypt(password),
           avatar: '/avatar/avatar.png',
-          date: moment().add(8, 'h').format('YYYY-MM-DD'),
+          date: moment().format('YYYY-MM-DD'),
           username: '彼岸自在',
           vip_start: 0,
           vip_expiry: 0,
