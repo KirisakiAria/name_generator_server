@@ -185,12 +185,12 @@ router.get('/', verifyAdminLogin, async ctx => {
 
 router.post('/', verifyAdminLogin, async ctx => {
   try {
-    const { chinese, japanese } = ctx.request.body
+    const { chinese, japanese, likedUsers } = ctx.request.body
     const data = new InspirationModel({
       chinese,
       japanese,
       date: moment().add(8, 'h').format(),
-      likedUsers: [],
+      likedUsers,
     })
     await data.save()
     ctx.body = {
@@ -208,13 +208,14 @@ router.post('/', verifyAdminLogin, async ctx => {
 
 router.put('/:id', verifyAdminLogin, async ctx => {
   try {
-    const { chinese, japanese } = ctx.request.body
+    const { chinese, japanese, likedUsers } = ctx.request.body
     const result = await InspirationModel.updateOne(
       { _id: ctx.params.id },
       {
         $set: {
           chinese,
           japanese,
+          likedUsers,
         },
       },
     )
