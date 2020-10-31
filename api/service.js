@@ -132,12 +132,22 @@ router.get('/feedback', verifyAdminLogin, async ctx => {
     let condition
     if (startTime && endTime) {
       condition = {
-        tel: pattern,
+        $or: [
+          { tel: pattern },
+          { username: pattern },
+          { email: pattern },
+          { content: pattern },
+        ],
         date: { $lte: endTime, $gte: startTime },
       }
     } else {
       condition = {
-        tel: pattern,
+        $or: [
+          { tel: pattern },
+          { username: pattern },
+          { email: pattern },
+          { content: pattern },
+        ],
       }
     }
     const list = await FeedbackModel.find(condition)

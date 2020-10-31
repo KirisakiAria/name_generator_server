@@ -491,11 +491,14 @@ router.get('/', verifyAdminLogin, async ctx => {
   try {
     const { searchContent, pageSize, currentPage } = ctx.request.query
     const pattern = new RegExp(searchContent, 'i')
-    const list = await UserModel.find({ tel: pattern })
+    const condition = {
+      $or: [{ tel: pattern }, { username: pattern }],
+    }
+    const list = await UserModel.find(condition)
       .sort({ _id: -1 })
       .skip(parseInt(pageSize) * parseInt(currentPage))
       .limit(parseInt(pageSize))
-    const total = await UserModel.find({ tel: pattern }).countDocuments()
+    const total = await UserModel.find(condition).countDocuments()
     ctx.body = {
       code: '1000',
       message: '请求成功',

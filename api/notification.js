@@ -1,46 +1,14 @@
 const Router = require('@koa/router')
 const moment = require('moment')
 const JWT = require('../utils/jwt')
-const InspirationModel = require('../model/Inspiration')
+const NotificationModel = require('../model/Notification')
 const {
   verifyAppBaseInfo,
   verifyAdminLogin,
   verifyUserLogin,
 } = require('../utils/verify')
 
-const router = new Router({ prefix: '/inspiration' })
-
-router.get('/today', verifyAppBaseInfo, async ctx => {
-  try {
-    let isLiked = false
-    const data = await InspirationModel.find().sort({ _id: -1 })
-    const token = ctx.request.header.authorization
-    if (token) {
-      const jwt = new JWT(token)
-      const res = jwt.verifyToken()
-      if (res.user) {
-        isLiked = data[0].likedUsers.includes(res.user)
-      }
-    }
-    ctx.body = {
-      code: '1000',
-      message: '请求成功',
-      data: {
-        id: data[0]._id,
-        chinese: data[0].chinese,
-        japanese: data[0].japanese,
-        likeCount: data[0].likedUsers.length,
-        isLiked,
-      },
-    }
-  } catch (err) {
-    console.log(err)
-    ctx.body = {
-      code: '9000',
-      message: '请求错误',
-    }
-  }
-})
+const router = new Router({ prefix: '/notification' })
 
 router.put('/like/:id', verifyAppBaseInfo, verifyUserLogin, async ctx => {
   try {
@@ -50,12 +18,12 @@ router.put('/like/:id', verifyAppBaseInfo, verifyUserLogin, async ctx => {
     if (res.user) {
       let result
       if (islike) {
-        result = await InspirationModel.updateOne(
+        result = await NotificationModel.updateOne(
           { _id: ctx.params.id },
           { $pull: { likedUsers: res.user } },
         )
       } else {
-        result = await InspirationModel.updateOne(
+        result = await NotificationModel.updateOne(
           { _id: ctx.params.id },
           { $push: { likedUsers: res.user } },
         )
@@ -86,49 +54,7 @@ router.put('/like/:id', verifyAppBaseInfo, verifyUserLogin, async ctx => {
   }
 })
 
-router.get('/history', verifyAppBaseInfo, async ctx => {
-  try {
-    const { page } = ctx.request.query
-    const list = await InspirationModel.find()
-      .sort({ _id: -1 })
-      .skip(15 * parseInt(page))
-      .limit(15)
-    const total = await InspirationModel.find().countDocuments()
-    ctx.body = {
-      code: '1000',
-      message: '请求成功',
-      data: {
-        list,
-        total,
-      },
-    }
-  } catch (err) {
-    console.log(err)
-    ctx.body = {
-      code: '9000',
-      message: '请求错误',
-    }
-  }
-})
-
-router.get('/history/:id', verifyAppBaseInfo, async ctx => {
-  try {
-    const data = await InspirationModel.findOne({ _id: ctx.params.id })
-    ctx.body = {
-      code: '1000',
-      message: '请求成功',
-      data: data,
-    }
-  } catch (err) {
-    console.log(err)
-    ctx.body = {
-      code: '9000',
-      message: '请求错误',
-    }
-  }
-})
-
-router.get('/', verifyAdminLogin, async ctx => {
+router.get('/', async ctx => {
   try {
     const {
       searchContent,
@@ -141,29 +67,19 @@ router.get('/', verifyAdminLogin, async ctx => {
     const pattern = new RegExp(searchContent, 'i')
     if (startTime && endTime) {
       condition = {
-        $or: [
-          { 'chinese.title': pattern },
-          { 'chinese.content': pattern },
-          { 'japanese.title': pattern },
-          { 'japanese.content': pattern },
-        ],
+        $or: [{ title: pattern }, { content: pattern }],
         date: { $lte: endTime, $gte: startTime },
       }
     } else {
       condition = {
-        $or: [
-          { 'chinese.title': pattern },
-          { 'chinese.content': pattern },
-          { 'japanese.title': pattern },
-          { 'japanese.content': pattern },
-        ],
+        $or: [{ title: pattern }, { content: pattern }],
       }
     }
-    const list = await InspirationModel.find(condition)
+    const list = await NotificationModel.find(condition)
       .sort({ _id: -1 })
       .skip(parseInt(pageSize) * parseInt(currentPage))
       .limit(parseInt(pageSize))
-    const total = await InspirationModel.find(condition).countDocuments()
+    const total = await NotificationModel.find(condition).countDocuments()
     ctx.body = {
       code: '1000',
       message: '请求成功',
@@ -183,12 +99,11 @@ router.get('/', verifyAdminLogin, async ctx => {
 
 router.post('/', verifyAdminLogin, async ctx => {
   try {
-    const { chinese, japanese, likedUsers } = ctx.request.body
-    const data = new InspirationModel({
-      chinese,
-      japanese,
+    const { title, content } = ctx.request.body
+    const data = new NotificationModel({
+      title,
+      content,
       date: moment().add(8, 'h').format(),
-      likedUsers,
     })
     await data.save()
     ctx.body = {
@@ -206,14 +121,13 @@ router.post('/', verifyAdminLogin, async ctx => {
 
 router.put('/:id', verifyAdminLogin, async ctx => {
   try {
-    const { chinese, japanese, likedUsers } = ctx.request.body
-    const result = await InspirationModel.updateOne(
+    const { title, content } = ctx.request.body
+    const result = await NotificationModel.updateOne(
       { _id: ctx.params.id },
       {
         $set: {
-          chinese,
-          japanese,
-          likedUsers,
+          title,
+          content,
         },
       },
     )
@@ -240,7 +154,7 @@ router.put('/:id', verifyAdminLogin, async ctx => {
 router.post('/delete', verifyAdminLogin, async ctx => {
   try {
     const { items } = ctx.request.body
-    const result = await InspirationModel.deleteMany({ _id: { $in: items } })
+    const result = await NotificationModel.deleteMany({ _id: { $in: items } })
     if (result.ok == 1 && result.deletedCount == items.length) {
       ctx.body = {
         code: '1000',
