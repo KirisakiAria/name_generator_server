@@ -9,9 +9,14 @@ const router = new Router({ prefix: '/word' })
 const JWT = require('../utils/jwt')
 const JapaneseWordModel = require('../model/JapaneseWord')
 const ChineseWordModel = require('../model/ChineseWord')
+const DictionaryModel = require('../model/Dictionary')
 const UserModel = require('../model/User')
 const CoupleModel = require('../model/Couple')
-const { verifyAppBaseInfo, verifyAdminLogin } = require('../utils/verify')
+const {
+  verifyAppBaseInfo,
+  verifyAdminLogin,
+  verifyUserLogin,
+} = require('../utils/verify')
 
 const findRandomWord = async (Model, count, length) => {
   const randomIndex = Math.floor(Math.random() * count)
@@ -79,6 +84,24 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
         word: data.word,
         romaji,
       },
+    }
+  } catch (err) {
+    console.log(err)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
+router.post('/dictionary', verifyAppBaseInfo, verifyUserLogin, async ctx => {
+  try {
+    const { word } = ctx.request.body
+    const data = await DictionaryModel.findOne({ word })
+    ctx.body = {
+      code: '1000',
+      message: '请求成功',
+      data,
     }
   } catch (err) {
     console.log(err)
