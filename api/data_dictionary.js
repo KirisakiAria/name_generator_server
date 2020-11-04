@@ -2,7 +2,7 @@ const Router = require('@koa/router')
 const ClassifyModel = require('../model/Classify')
 const { verifyAdminLogin } = require('../utils/verify')
 
-const router = new Router({ prefix: '/dictionary' })
+const router = new Router({ prefix: '/data_dictionary' })
 
 router.get('/classify', verifyAdminLogin, async ctx => {
   try {

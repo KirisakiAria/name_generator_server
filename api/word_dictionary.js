@@ -1,36 +1,22 @@
 const fs = require('fs')
 const Router = require('@koa/router')
-const DictionaryModel = require('../model/Dictionary')
+const WordDictionaryModel = require('../model/WordDictionary')
 const { verifyAdminLogin } = require('../utils/verify')
 
 const router = new Router({ prefix: '/word_dictionary' })
 
 router.get('/', verifyAdminLogin, async ctx => {
   try {
-    const {
-      searchContent,
-      startTime,
-      endTime,
-      pageSize,
-      currentPage,
-    } = ctx.request.query
-    let condition
+    const { searchContent, pageSize, currentPage } = ctx.request.query
     const pattern = new RegExp(searchContent, 'i')
-    if (startTime && endTime) {
-      condition = {
-        $or: [{ title: pattern }, { content: pattern }],
-        date: { $lte: endTime, $gte: startTime },
-      }
-    } else {
-      condition = {
-        $or: [{ title: pattern }, { content: pattern }],
-      }
+    const condition = {
+      $or: [{ word: pattern }, { explanation: pattern }, { more: pattern }],
     }
-    const list = await DictionaryModel.find(condition)
+    const list = await WordDictionaryModel.find(condition)
       .sort({ _id: -1 })
       .skip(parseInt(pageSize) * parseInt(currentPage))
       .limit(parseInt(pageSize))
-    const total = await DictionaryModel.find(condition).countDocuments()
+    const total = await WordDictionaryModel.find(condition).countDocuments()
     ctx.body = {
       code: '1000',
       message: '请求成功',
@@ -59,9 +45,10 @@ router.post('/', verifyAdminLogin, async ctx => {
       strokes,
       more,
     } = ctx.request.body
-    const data = new DictionaryModel({
+    const data = new WordDictionaryModel({
       word,
       oldword,
+      length: word.length,
       pinyin,
       explanation,
       radicals,
@@ -84,42 +71,36 @@ router.post('/', verifyAdminLogin, async ctx => {
 
 router.post('/upload', verifyAdminLogin, async ctx => {
   try {
-    const {
-      path,
-      word,
-      oldword,
-      pinyin,
-      explanation,
-      radicals,
-      strokes,
-      more,
-    } = ctx.request.body
+    const { path } = ctx.request.body
     const data = await loadFile(path)
-    const arr = unique(data.split(','))
+    let progress = 0
     //循环次数
-    const times = Array.from({ length: arr.length }, (v, i) => i)
+    const times = Array.from({ length: data.length }, (v, i) => i)
     await (async () => {
       for (let i of times) {
-        if (arr[i].length < 1 || arr[i] === '') {
+        if (data[i].length < 1 || data[i] === '') {
           continue
         }
-        const existedWord = await DictionaryModel.findOne({
-          word: arr[i].trim(),
+        const existedWord = await WordDictionaryModel.findOne({
+          word: data[i].trim(),
         })
         //防止重复
         if (existedWord) {
           continue
         } else {
-          const item = new Model({
-            word,
-            oldword,
-            pinyin,
-            explanation,
-            radicals,
-            strokes,
-            more,
+          const item = new WordDictionaryModel({
+            word: data[i].word,
+            oldword: data[i].oldword,
+            length: String(data[i].word).length,
+            pinyin: data[i].pinyin,
+            explanation: data[i].explanation,
+            radicals: data[i].radicals,
+            strokes: data[i].strokes,
+            more: data[i].more,
           })
           await item.save()
+          progress++
+          console.log(`当前上传进度：${progress}/${data.length}`)
         }
       }
     })()
@@ -135,11 +116,6 @@ router.post('/upload', verifyAdminLogin, async ctx => {
     }
   }
 })
-
-//去重
-const unique = arr => {
-  return Array.from(new Set(arr))
-}
 
 //读取文件
 const loadFile = path => {
@@ -171,12 +147,13 @@ router.put('/:id', verifyAdminLogin, async ctx => {
       strokes,
       more,
     } = ctx.request.body
-    const result = await DictionaryModel.updateOne(
+    const result = await WordDictionaryModel.updateOne(
       { _id: ctx.params.id },
       {
         $set: {
           word,
           oldword,
+          length: word.length,
           pinyin,
           explanation,
           radicals,
@@ -208,7 +185,7 @@ router.put('/:id', verifyAdminLogin, async ctx => {
 router.post('/delete', verifyAdminLogin, async ctx => {
   try {
     const { items } = ctx.request.body
-    const result = await DictionaryModel.deleteMany({ _id: { $in: items } })
+    const result = await WordDictionaryModel.deleteMany({ _id: { $in: items } })
     if (result.ok == 1 && result.deletedCount == items.length) {
       ctx.body = {
         code: '1000',

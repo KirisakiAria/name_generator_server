@@ -11,7 +11,7 @@ const notification = require('./notification')
 const application = require('./application')
 const service = require('./service')
 const information = require('./information')
-const dictionary = require('./dictionary')
+const data_dictionary = require('./data_dictionary')
 const system = require('./system')
 
 const api = new Router({ prefix: `/api/${config.apiVersion}` })
@@ -28,7 +28,7 @@ api.use(notification.routes()).use(notification.allowedMethods())
 api.use(application.routes()).use(application.allowedMethods())
 api.use(service.routes()).use(service.allowedMethods())
 api.use(information.routes()).use(information.allowedMethods())
-api.use(dictionary.routes()).use(dictionary.allowedMethods())
+api.use(data_dictionary.routes()).use(data_dictionary.allowedMethods())
 api.use(system.routes()).use(system.allowedMethods())
 
 module.exports = api

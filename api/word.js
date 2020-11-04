@@ -9,7 +9,7 @@ const router = new Router({ prefix: '/word' })
 const JWT = require('../utils/jwt')
 const JapaneseWordModel = require('../model/JapaneseWord')
 const ChineseWordModel = require('../model/ChineseWord')
-const DictionaryModel = require('../model/Dictionary')
+const WordDictionary = require('../model/WordDictionary')
 const UserModel = require('../model/User')
 const CoupleModel = require('../model/Couple')
 const {
@@ -97,7 +97,7 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
 router.post('/dictionary', verifyAppBaseInfo, verifyUserLogin, async ctx => {
   try {
     const { word } = ctx.request.body
-    const data = await DictionaryModel.findOne({ word })
+    const data = await WordDictionary.findOne({ word })
     ctx.body = {
       code: '1000',
       message: '请求成功',
@@ -344,7 +344,7 @@ router.post('/upload', verifyAdminLogin, async ctx => {
     const Model = selectModel(type)
     const data = await loadFile(path)
     const arr = unique(data.split(','))
-    let length = 0
+    let progress = 0
     //循环次数
     const times = Array.from({ length: arr.length }, (v, i) => i)
     await (async () => {
@@ -366,7 +366,8 @@ router.post('/upload', verifyAdminLogin, async ctx => {
             showable,
           })
           await word.save()
-          length++
+          progress++
+          console.log(`当前上传进度：${progress}/${arr.length}`)
         }
       }
     })()
@@ -375,7 +376,7 @@ router.post('/upload', verifyAdminLogin, async ctx => {
     writerStream.write(
       `用户：${res.user} IP：${clientIp} 在${moment().format()}上传了${
         arr.length
-      }个词语，上传成功${length}个\n`,
+      }个词语，上传成功${progress}个\n`,
       'UTF8',
     )
     writerStream.end()
@@ -692,22 +693,22 @@ router.post('/couples/upload', verifyAdminLogin, async ctx => {
     const { type, path, showable } = ctx.request.body
     const data = await loadFile(path)
     const arr = assemble(unique(data.split(',')), 2)
-    let length = 0
+    let progress = 0
     //循环次数
     const times = Array.from({ length: arr.length }, (v, i) => i)
     await (async () => {
       for (let i of times) {
         if (
-          arr[i][0].length < 1 ||
+          arr[i][0].trim().length < 1 ||
           arr[i][0] === '' ||
-          arr[i][1].length < 1 ||
+          arr[i][1].trim().length < 1 ||
           arr[i][1] === ''
         ) {
           continue
         }
         const stringWords = [
-          [arr[i][0], arr[i][1]],
-          [arr[i][1], arr[i][0]],
+          [arr[i][0].trim(), arr[i][1].trim()],
+          [arr[i][1].trim(), arr[i][0].trim()],
         ]
         const existedWord = await CoupleModel.findOne({
           words: { $in: stringWords },
@@ -718,12 +719,13 @@ router.post('/couples/upload', verifyAdminLogin, async ctx => {
         } else {
           const couple = new CoupleModel({
             type,
-            words: [arr[i][0], arr[i][1]],
-            length: arr[i][0].length,
+            words: [arr[i][0].trim(), arr[i][1].trim()],
+            length: arr[i][0].trim().length,
             showable,
           })
           await couple.save()
-          length++
+          progress++
+          console.log(`当前上传进度：${progress}/${arr.length}`)
         }
       }
     })()
@@ -732,7 +734,7 @@ router.post('/couples/upload', verifyAdminLogin, async ctx => {
     writerStream.write(
       `用户：${res.user} IP：${clientIp} 在${moment().format()}上传了${
         arr.length
-      }个情侣词，上传成功${length / 2}对\n`,
+      }个情侣词，上传成功${progress / 2}对\n`,
       'UTF8',
     )
     writerStream.end()
