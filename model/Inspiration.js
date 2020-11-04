@@ -11,6 +11,8 @@ const InspirationSchema = new Schema({
     title: String,
     author: String,
     content: String,
+    titleTranslation: String,
+    contentTranslation: String,
   },
   date: Date,
   likedUsers: [String],

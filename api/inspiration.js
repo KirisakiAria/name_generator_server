@@ -146,6 +146,8 @@ router.get('/', verifyAdminLogin, async ctx => {
           { 'chinese.content': pattern },
           { 'japanese.title': pattern },
           { 'japanese.content': pattern },
+          { 'japanese.titleTranslation': pattern },
+          { 'japanese.contentTranslation': pattern },
         ],
         date: { $lte: endTime, $gte: startTime },
       }
@@ -156,6 +158,8 @@ router.get('/', verifyAdminLogin, async ctx => {
           { 'chinese.content': pattern },
           { 'japanese.title': pattern },
           { 'japanese.content': pattern },
+          { 'japanese.titleTranslation': pattern },
+          { 'japanese.contentTranslation': pattern },
         ],
       }
     }
