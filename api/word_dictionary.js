@@ -72,36 +72,28 @@ router.post('/', verifyAdminLogin, async ctx => {
 router.post('/upload', verifyAdminLogin, async ctx => {
   try {
     const { path } = ctx.request.body
-    const data = await loadFile(path)
+    const rawData = await loadFile(path)
+    const data = JSON.parse(rawData)
     let progress = 0
     //循环次数
     const times = Array.from({ length: data.length }, (v, i) => i)
     await (async () => {
       for (let i of times) {
-        if (data[i].length < 1 || data[i] === '') {
-          continue
-        }
-        const existedWord = await WordDictionaryModel.findOne({
-          word: data[i].trim(),
-        })
+        const word = data[i].word || data[i].ci
         //防止重复
-        if (existedWord) {
-          continue
-        } else {
-          const item = new WordDictionaryModel({
-            word: data[i].word,
-            oldword: data[i].oldword,
-            length: String(data[i].word).length,
-            pinyin: data[i].pinyin,
-            explanation: data[i].explanation,
-            radicals: data[i].radicals,
-            strokes: data[i].strokes,
-            more: data[i].more,
-          })
-          await item.save()
-          progress++
-          console.log(`当前上传进度：${progress}/${data.length}`)
-        }
+        const item = new WordDictionaryModel({
+          word,
+          oldword: data[i].oldword,
+          length: String(word).length,
+          pinyin: data[i].pinyin,
+          explanation: data[i].explanation,
+          radicals: data[i].radicals,
+          strokes: data[i].strokes,
+          more: data[i].more,
+        })
+        await item.save()
+        progress++
+        console.log(`当前上传进度：${progress}/${data.length}`)
       }
     })()
     ctx.body = {
