@@ -7,11 +7,10 @@ const router = new Router({ prefix: '/word_dictionary' })
 
 router.get('/', verifyAdminLogin, async ctx => {
   try {
-    const { searchContent, pageSize, currentPage } = ctx.request.query
-    const pattern = new RegExp(searchContent, 'i')
-    const condition = {
-      $or: [{ word: pattern }, { explanation: pattern }, { more: pattern }],
-    }
+    const { word, explanation, pageSize, currentPage } = ctx.request.query
+    const wordPattern = new RegExp(word, 'i')
+    const explanationPattern = new RegExp(explanation, 'i')
+    const condition = { word: wordPattern, explanation: explanationPattern }
     const list = await WordDictionaryModel.find(condition)
       .sort({ _id: -1 })
       .skip(parseInt(pageSize) * parseInt(currentPage))

@@ -97,11 +97,19 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
 router.post('/dictionary', verifyAppBaseInfo, verifyUserLogin, async ctx => {
   try {
     const { word } = ctx.request.body
-    const data = await WordDictionary.findOne({ word })
+    const allWord = await WordDictionary.findOne({ word })
+    const characters = []
+    for (let c of word) {
+      const data = await WordDictionary.findOne({ word: c })
+      characters.push(data)
+    }
     ctx.body = {
       code: '1000',
       message: '请求成功',
-      data,
+      data: {
+        allWord,
+        characters,
+      },
     }
   } catch (err) {
     console.log(err)
