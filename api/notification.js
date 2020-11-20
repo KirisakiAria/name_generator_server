@@ -1,79 +1,16 @@
 const Router = require('@koa/router')
 const moment = require('moment')
-const JWT = require('../utils/jwt')
 const NotificationModel = require('../model/Notification')
-const {
-  verifyAppBaseInfo,
-  verifyAdminLogin,
-  verifyUserLogin,
-} = require('../utils/verify')
+const { verifyAdminLogin } = require('../utils/verify')
 
 const router = new Router({ prefix: '/notification' })
 
-router.put('/like/:id', verifyAppBaseInfo, verifyUserLogin, async ctx => {
-  try {
-    const { islike } = ctx.request.body
-    const jwt = new JWT(ctx.request.header.authorization)
-    const res = jwt.verifyToken()
-    if (res.user) {
-      let result
-      if (islike) {
-        result = await NotificationModel.updateOne(
-          { _id: ctx.params.id },
-          { $pull: { likedUsers: res.user } },
-        )
-      } else {
-        result = await NotificationModel.updateOne(
-          { _id: ctx.params.id },
-          { $push: { likedUsers: res.user } },
-        )
-      }
-      if (result.ok == 1 && result.nModified == 1) {
-        ctx.body = {
-          code: '1000',
-          message: '点赞成功',
-        }
-      } else {
-        ctx.body = {
-          code: '2000',
-          message: '点赞失败',
-        }
-      }
-    } else {
-      ctx.body = {
-        code: '3008',
-        message: '无此用户信息，请重新登录',
-      }
-    }
-  } catch (err) {
-    console.log(err)
-    ctx.body = {
-      code: '9000',
-      message: '请求错误',
-    }
-  }
-})
-
 router.get('/', async ctx => {
   try {
-    const {
-      searchContent,
-      startTime,
-      endTime,
-      pageSize,
-      currentPage,
-    } = ctx.request.query
-    let condition
+    const { searchContent, pageSize, currentPage } = ctx.request.query
     const pattern = new RegExp(searchContent, 'i')
-    if (startTime && endTime) {
-      condition = {
-        $or: [{ title: pattern }, { content: pattern }],
-        date: { $lte: endTime, $gte: startTime },
-      }
-    } else {
-      condition = {
-        $or: [{ title: pattern }, { content: pattern }],
-      }
+    const condition = {
+      $or: [{ title: pattern }, { content: pattern }],
     }
     const list = await NotificationModel.find(condition)
       .sort({ _id: -1 })
@@ -103,7 +40,7 @@ router.post('/', verifyAdminLogin, async ctx => {
     const data = new NotificationModel({
       title,
       content,
-      date: moment().add(8, 'h').format(),
+      date: moment().format('YYYY-MM-DD HH:mm:ss'),
     })
     await data.save()
     ctx.body = {

@@ -121,34 +121,15 @@ router.put('/:id', verifyAdminLogin, async ctx => {
 
 router.get('/feedback', verifyAdminLogin, async ctx => {
   try {
-    const {
-      startTime,
-      endTime,
-      searchContent,
-      pageSize,
-      currentPage,
-    } = ctx.request.query
+    const { searchContent, pageSize, currentPage } = ctx.request.query
     const pattern = new RegExp(searchContent, 'i')
-    let condition
-    if (startTime && endTime) {
-      condition = {
-        $or: [
-          { tel: pattern },
-          { username: pattern },
-          { email: pattern },
-          { content: pattern },
-        ],
-        date: { $lte: endTime, $gte: startTime },
-      }
-    } else {
-      condition = {
-        $or: [
-          { tel: pattern },
-          { username: pattern },
-          { email: pattern },
-          { content: pattern },
-        ],
-      }
+    const condition = {
+      $or: [
+        { tel: pattern },
+        { username: pattern },
+        { email: pattern },
+        { content: pattern },
+      ],
     }
     const list = await FeedbackModel.find(condition)
       .sort({ _id: -1 })
@@ -180,7 +161,7 @@ router.post('/feedback', async ctx => {
       username,
       email,
       content,
-      date: moment().add(8, 'h').format(),
+      date: moment().format('YYYY-MM-DD HH:mm:ss'),
     })
     await data.save()
     ctx.body = {
@@ -203,7 +184,7 @@ router.post('/feedback', async ctx => {
       uid,
       tel,
       content,
-      date: moment().add(8, 'h').format(),
+      date: moment().format('YYYY-MM-DD HH:mm:ss'),
     })
     await data.save()
     ctx.body = {

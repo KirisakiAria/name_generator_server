@@ -33,7 +33,9 @@ router.post('/login', verifyAppBaseInfo, async ctx => {
       })
       const token = jwt.generateToken()
       writerStream.write(
-        `用户：${tel} IP：${clientIp} 在${moment().format()}登录\n`,
+        `用户：${tel} IP：${clientIp} 在${moment().format(
+          'YYYY-MM-DD HH:mm:ss',
+        )}登录\n`,
         'UTF8',
       )
       ctx.body = {
@@ -110,7 +112,9 @@ router.post('/register', verifyAppBaseInfo, async ctx => {
         })
         await newUser.save()
         writerStream.write(
-          `用户：${tel} IP：${clientIp} 在${moment().format()}注册\n`,
+          `用户：${tel} IP：${clientIp} 在${moment().format(
+            'YYYY-MM-DD HH:mm:ss',
+          )}注册\n`,
           'UTF8',
         )
         writerStream.end()
@@ -214,7 +218,9 @@ router.post('/changepassword', verifyAppBaseInfo, async ctx => {
         )
         if (result.ok == 1 && result.nModified == 1) {
           writerStream.write(
-            `用户：${tel} IP：${clientIp} 在${moment().format()}修改密码\n`,
+            `用户：${tel} IP：${clientIp} 在${moment().format(
+              'YYYY-MM-DD HH:mm:ss',
+            )}修改密码\n`,
             'UTF8',
           )
           writerStream.end()
@@ -544,7 +550,7 @@ router.post('/', verifyAdminLogin, async ctx => {
         vip,
         vip_start,
         vip_expiry,
-        date: moment().add(8, 'h').format('YYYY-MM-DD'),
+        date: moment().format('YYYY-MM-DD'),
       })
       await newUser.save()
       ctx.body = {
@@ -622,7 +628,9 @@ router.delete('/:id', verifyAdminLogin, async ctx => {
     const result = await UserModel.deleteOne({ _id: ctx.params.id })
     if (result.ok == 1 && result.deletedCount == 1) {
       writerStream.write(
-        `用户：${tel} IP：${clientIp} 在${moment().format()}被删除\n`,
+        `用户：${tel} IP：${clientIp} 在${moment().format(
+          'YYYY-MM-DD HH:mm:ss',
+        )}被删除\n`,
         'UTF8',
       )
       writerStream.end()

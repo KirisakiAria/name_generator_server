@@ -6,7 +6,7 @@ const feedbackSchema = new Schema({
   username: String,
   email: String,
   content: String,
-  date: Date,
+  date: String,
 })
 
 const Feedback = mongoose.model('Feedback', feedbackSchema)

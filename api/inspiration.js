@@ -130,39 +130,19 @@ router.get('/history/:id', verifyAppBaseInfo, async ctx => {
 
 router.get('/', verifyAdminLogin, async ctx => {
   try {
-    const {
-      searchContent,
-      startTime,
-      endTime,
-      pageSize,
-      currentPage,
-    } = ctx.request.query
-    let condition
+    const { searchContent, pageSize, currentPage } = ctx.request.query
     const pattern = new RegExp(searchContent, 'i')
-    if (startTime && endTime) {
-      condition = {
-        $or: [
-          { 'chinese.title': pattern },
-          { 'chinese.content': pattern },
-          { 'japanese.title': pattern },
-          { 'japanese.content': pattern },
-          { 'japanese.titleTranslation': pattern },
-          { 'japanese.contentTranslation': pattern },
-        ],
-        date: { $lte: endTime, $gte: startTime },
-      }
-    } else {
-      condition = {
-        $or: [
-          { 'chinese.title': pattern },
-          { 'chinese.content': pattern },
-          { 'japanese.title': pattern },
-          { 'japanese.content': pattern },
-          { 'japanese.titleTranslation': pattern },
-          { 'japanese.contentTranslation': pattern },
-        ],
-      }
+    const condition = {
+      $or: [
+        { 'chinese.title': pattern },
+        { 'chinese.content': pattern },
+        { 'japanese.title': pattern },
+        { 'japanese.content': pattern },
+        { 'japanese.titleTranslation': pattern },
+        { 'japanese.contentTranslation': pattern },
+      ],
     }
+
     const list = await InspirationModel.find(condition)
       .sort({ _id: -1 })
       .skip(parseInt(pageSize) * parseInt(currentPage))
@@ -191,7 +171,7 @@ router.post('/', verifyAdminLogin, async ctx => {
     const data = new InspirationModel({
       chinese,
       japanese,
-      date: moment().add(8, 'h').format(),
+      date: moment().format('YYYY-MM-DD HH:mm:ss'),
       likedUsers,
     })
     await data.save()

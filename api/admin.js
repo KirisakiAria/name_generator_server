@@ -41,7 +41,9 @@ router.post('/login', async ctx => {
         })
         const token = jwt.generateToken()
         writerStream.write(
-          `用户：${username} IP：${clientIp} 在${moment().format()}登录后台\n`,
+          `用户：${username} IP：${clientIp} 在${moment().format(
+            'YYYY-MM-DD HH:mm:ss',
+          )}登录后台\n`,
           'UTF8',
         )
         ctx.body = {

@@ -48,7 +48,7 @@ const sendCode = (templateId, tel, ctx) => {
               {
                 $set: {
                   authCode: code,
-                  lastTime: moment().add(8, 'h').format(),
+                  lastTime: moment().format('YYYY-MM-DD HH:mm:ss'),
                 },
               },
             )
@@ -61,7 +61,7 @@ const sendCode = (templateId, tel, ctx) => {
               authCode: code, //验证码
               clientIp, // 客户端 ip
               sendCount: 1, // 发送次数
-              lastTime: moment().add(8, 'h').format(), // 当前日期
+              lastTime: moment().format('YYYY-MM-DD HH:mm:ss'), // 当前日期
             })
             await sms.save()
           }
