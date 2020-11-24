@@ -31,59 +31,95 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
   try {
     const threshold = 50
     let data
-    const { type, length, ifRomaji } = ctx.request.body
-    const Model = selectModel(type)
-    const count = await Model.find({
-      length: Number.parseInt(length),
-      showable: true,
-    }).countDocuments()
-    data = await findRandomWord(Model, count, length)
-    //防止查词重复（阈值50）
-    while (ctx.session.words && ctx.session.words.includes(data.word)) {
-      data = await findRandomWord(Model, count, length)
-    }
-    if (ctx.session.words) {
-      ctx.session.words.push(data.word)
-    } else {
-      ctx.session.words = [data.word]
-    }
-    if (ctx.session.words.length > threshold) {
-      ctx.session.words.shift()
-    }
+    const { type, length, ifRomaji, couples } = ctx.request.body
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
-    if (res.user && data) {
-      await UserModel.findOne({ tel: res.user }, (err, user) => {
-        if (err) {
-          console.log(err)
-        } else {
-          if (!user) {
-            return false
-          } else {
-            user.history.unshift({
-              type,
-              length,
-              word: data.word,
-            })
-            if (user.history.length > 500) {
-              for (let i = user.history.length - 500; i > 0; i--) {
-                user.history.pop()
-              }
-            }
-            user.save()
-          }
+    //情侣词
+    if (couples) {
+      const count = await CoupleModel.find({
+        length: Number.parseInt(length),
+        showable: true,
+      }).countDocuments()
+      const randomIndex = Math.floor(Math.random() * count)
+      const data = await CoupleModel.findOne({
+        length: Number.parseInt(length),
+        showable: true,
+      }).skip(randomIndex)
+      ctx.body = {
+        code: '1000',
+        message: '请求成功',
+        data: {
+          word: data.words[0],
+          word2: data.words[1],
+          romaji: '',
+        },
+      }
+    } else {
+      if (res.user) {
+        const user = await UserModel.findOne({ tel: res.user })
+        if (!user.vip && parseInt(length) > 5) {
+          return (ctx.body = {
+            code: '3010',
+            message: '此操作只有VIP用户可以使用',
+            data: {
+              word: '彼岸自在',
+            },
+          })
         }
-      })
-    }
-    //罗马字
-    const romaji = await getRomaji(ifRomaji, type, data.word)
-    ctx.body = {
-      code: '1000',
-      message: '请求成功',
-      data: {
-        word: data.word,
-        romaji,
-      },
+      }
+      //非情侣词
+      const Model = selectModel(type)
+      const count = await Model.find({
+        length: Number.parseInt(length),
+        showable: true,
+      }).countDocuments()
+      data = await findRandomWord(Model, count, length)
+      //防止查词重复（阈值50）
+      while (ctx.session.words && ctx.session.words.includes(data.word)) {
+        data = await findRandomWord(Model, count, length)
+      }
+      if (ctx.session.words) {
+        ctx.session.words.push(data.word)
+      } else {
+        ctx.session.words = [data.word]
+      }
+      if (ctx.session.words.length > threshold) {
+        ctx.session.words.shift()
+      }
+      if (res.user && data) {
+        await UserModel.findOne({ tel: res.user }, (err, user) => {
+          if (err) {
+            console.log(err)
+          } else {
+            if (!user) {
+              return false
+            } else {
+              user.history.unshift({
+                type,
+                length,
+                word: data.word,
+              })
+              if (user.history.length > 500) {
+                for (let i = user.history.length - 500; i > 0; i--) {
+                  user.history.pop()
+                }
+              }
+              user.save()
+            }
+          }
+        })
+      }
+      //罗马字
+      const romaji = await getRomaji(ifRomaji, type, data.word)
+      ctx.body = {
+        code: '1000',
+        message: '请求成功',
+        data: {
+          word: data.word,
+          word2: '',
+          romaji,
+        },
+      }
     }
   } catch (err) {
     console.log(err)
