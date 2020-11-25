@@ -156,9 +156,9 @@ router.post('/dictionary', verifyAppBaseInfo, verifyUserLogin, async ctx => {
   }
 })
 
-router.post('/search', verifyAppBaseInfo, async ctx => {
+router.post('/search', verifyAppBaseInfo, verifyUserLogin, async ctx => {
   try {
-    const { searchContent, currentPage } = ctx.request.body
+    const { searchContent, currentPage, searchType } = ctx.request.body
     if (searchContent == '') {
       ctx.body = {
         code: '2003',
@@ -166,29 +166,79 @@ router.post('/search', verifyAppBaseInfo, async ctx => {
       }
     } else {
       const pattern = new RegExp(searchContent, 'i')
-      const conditions = {
-        word: pattern,
-        showable: true,
-        length: { $lte: 5 },
+      let limit = 5
+      const jwt = new JWT(ctx.request.header.authorization)
+      const res = jwt.verifyToken()
+      if (res.user) {
+        const user = await UserModel.findOne({ tel: res.user })
+        if (user.vip) {
+          limit = 7
+        }
       }
-      let chineselist = await ChineseWordModel.find(conditions)
-        .skip(15 * parseInt(currentPage))
-        .limit(15)
-      let japaneselist = await JapaneseWordModel.find(conditions)
-        .skip(15 * parseInt(currentPage))
-        .limit(15)
-      chineselist = chineselist.map(e =>
-        Object.assign(e.toObject(), { type: '中国风' }),
-      )
-      japaneselist = japaneselist.map(e =>
-        Object.assign(e.toObject(), { type: '日式' }),
-      )
-      ctx.body = {
-        code: '1000',
-        message: '请求成功',
-        data: {
-          list: chineselist.concat(japaneselist),
-        },
+      if (searchType == 'SearchType.NORMAL') {
+        const conditions = {
+          word: pattern,
+          showable: true,
+          length: { $lte: limit },
+        }
+        let chineselist = await ChineseWordModel.find(conditions)
+          .skip(15 * parseInt(currentPage))
+          .limit(15)
+        let japaneselist = await JapaneseWordModel.find(conditions)
+          .skip(15 * parseInt(currentPage))
+          .limit(15)
+        chineselist = chineselist.map(e =>
+          Object.assign(e.toObject(), { type: '中国风' }),
+        )
+        japaneselist = japaneselist.map(e =>
+          Object.assign(e.toObject(), { type: '日式' }),
+        )
+        ctx.body = {
+          code: '1000',
+          message: '请求成功',
+          data: {
+            list: chineselist.concat(japaneselist),
+          },
+        }
+      } else if (searchType == 'SearchType.COUPLES') {
+        const conditions = {
+          words: { $all: [pattern] },
+          showable: true,
+          length: { $lte: 5 },
+        }
+        const list = await CoupleModel.find(conditions)
+          .skip(15 * parseInt(currentPage))
+          .limit(15)
+        ctx.body = {
+          code: '1000',
+          message: '请求成功',
+          data: {
+            list,
+          },
+        }
+      } else {
+        const conditions = {
+          words: { $all: [searchContent] },
+          showable: true,
+          length: { $lte: 5 },
+        }
+        const data = await CoupleModel.findOne(conditions)
+        let list = []
+        if (data) {
+          let words = data.words
+          const index = words.indexOf(searchContent)
+          words.splice(index, 1)
+          list.push({
+            word: words.join(),
+          })
+        }
+        ctx.body = {
+          code: '1000',
+          message: '请求成功',
+          data: {
+            list,
+          },
+        }
       }
     }
   } catch (err) {
