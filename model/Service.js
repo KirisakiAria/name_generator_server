@@ -6,6 +6,7 @@ const serviceSchema = new Schema({
   terms: String,
   usage: String,
   update: String,
+  vip: String,
 })
 
 const Service = mongoose.model('Service', serviceSchema)
