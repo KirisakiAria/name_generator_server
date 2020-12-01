@@ -204,7 +204,7 @@ router.post('/search', verifyAppBaseInfo, verifyUserLogin, async ctx => {
         const conditions = {
           words: { $all: [pattern] },
           showable: true,
-          length: { $lte: 5 },
+          length: { $lte: limit },
         }
         const list = await CoupleModel.find(conditions)
           .skip(15 * parseInt(currentPage))
@@ -217,11 +217,21 @@ router.post('/search', verifyAppBaseInfo, verifyUserLogin, async ctx => {
           },
         }
       } else {
+        if (parseInt(currentPage) > 0) {
+          return (ctx.body = {
+            code: '1000',
+            message: '请求成功',
+            data: {
+              list: [],
+            },
+          })
+        }
         const conditions = {
           words: { $all: [searchContent] },
           showable: true,
-          length: { $lte: 5 },
+          length: { $lte: limit },
         }
+        //先从库里寻找
         const data = await CoupleModel.findOne(conditions)
         let list = []
         if (data) {
@@ -230,6 +240,31 @@ router.post('/search', verifyAppBaseInfo, verifyUserLogin, async ctx => {
           words.splice(index, 1)
           list.push({
             word: words.join(),
+          })
+        }
+        //微软 对联
+        const options = {
+          method: 'POST',
+          headers: { 'content-type': 'application/json; charset=utf-8' },
+          data: {
+            isUpdate: false,
+            shanglian: searchContent,
+            xialianLocker: '0',
+          },
+          url: 'http://duilian.msra.cn/app/CoupletsWS_V2.asmx/GetXiaLian',
+        }
+        const res = await axios(options)
+        if (res.status == 200) {
+          console.log(res.data.d.XialianSystemGeneratedSets)
+          const arr = res.data.d.XialianSystemGeneratedSets
+          arr.forEach(e => {
+            list = list.concat(
+              e.XialianCandidates.map(v => {
+                return {
+                  word: v,
+                }
+              }),
+            )
           })
         }
         ctx.body = {
@@ -581,7 +616,6 @@ router.post('/delete', verifyAdminLogin, async ctx => {
 router.post('/toggleshowable', verifyAdminLogin, async ctx => {
   try {
     const { type, items, showable } = ctx.request.body
-
     const Model = selectModel(type)
     const result = await Model.updateMany(
       { _id: { $in: items } },
