@@ -250,8 +250,8 @@ router.get('/downloadlink', async ctx => {
 
 router.post('/feedback/delete', verifyAdminLogin, async ctx => {
   try {
-    const { ids } = ctx.request.body
-    const result = await FeedbackModel.deleteMany({ _id: { $in: ids } })
+    const { items } = ctx.request.body
+    const result = await FeedbackModel.deleteMany({ _id: { $in: items } })
     if (result.ok == 1 && result.deletedCount >= 1) {
       ctx.body = {
         code: '1000',
