@@ -180,7 +180,7 @@ router.post('/search', verifyAppBaseInfo, verifyUserLogin, async ctx => {
           limit = 7
         }
       }
-      if (searchType == 'SearchType.NORMAL') {
+      if (!searchType || searchType == 'SearchType.NORMAL') {
         const conditions = {
           word: pattern,
           showable: true,
