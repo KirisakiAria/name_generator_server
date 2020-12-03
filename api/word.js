@@ -36,6 +36,18 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
     const res = jwt.verifyToken()
     //情侣词
     if (couples) {
+      if (res.user) {
+        const user = await UserModel.findOne({ tel: res.user })
+        if (!user.vip) {
+          return (ctx.body = {
+            code: '3010',
+            message: '此操作只有VIP用户可以使用',
+            data: {
+              word: '彼岸自在',
+            },
+          })
+        }
+      }
       const count = await CoupleModel.find({
         length: Number.parseInt(length),
         showable: true,
@@ -87,27 +99,20 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
         ctx.session.words.shift()
       }
       if (res.user && data) {
-        await UserModel.findOne({ tel: res.user }, (err, user) => {
-          if (err) {
-            console.log(err)
-          } else {
-            if (!user) {
-              return false
-            } else {
-              user.history.unshift({
-                type,
-                length,
-                word: data.word,
-              })
-              if (user.history.length > 500) {
-                for (let i = user.history.length - 500; i > 0; i--) {
-                  user.history.pop()
-                }
-              }
-              user.save()
+        const user = await UserModel.findOne({ tel: res.user })
+        if (user) {
+          user.history.unshift({
+            type,
+            length,
+            word: data.word,
+          })
+          if (user.history.length > 500) {
+            for (let i = user.history.length - 500; i > 0; i--) {
+              user.history.pop()
             }
           }
-        })
+          user.save()
+        }
       }
       //罗马字
       const romaji = await getRomaji(ifRomaji, type, data.word)
@@ -255,7 +260,6 @@ router.post('/search', verifyAppBaseInfo, verifyUserLogin, async ctx => {
         }
         const res = await axios(options)
         if (res.status == 200) {
-          console.log(res.data.d.XialianSystemGeneratedSets)
           const arr = res.data.d.XialianSystemGeneratedSets
           arr.forEach(e => {
             list = list.concat(

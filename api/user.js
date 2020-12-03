@@ -12,6 +12,24 @@ const {
   verifyUserLogin,
 } = require('../utils/verify')
 
+const filterStartTime = value => {
+  if (!value) {
+    return '无'
+  } else {
+    return moment(value).format('YYYY-MM-DD hh:mm:ss')
+  }
+}
+
+const filterEndTime = value => {
+  if (!value) {
+    return '无'
+  } else if (value > 0) {
+    return moment(value).format('YYYY-MM-DD hh:mm:ss')
+  } else {
+    return '永久'
+  }
+}
+
 router.post('/login', verifyAppBaseInfo, async ctx => {
   try {
     const writerStream = fs.createWriteStream(
@@ -35,9 +53,10 @@ router.post('/login', verifyAppBaseInfo, async ctx => {
       writerStream.write(
         `用户：${tel} IP：${clientIp} 在${moment().format(
           'YYYY-MM-DD HH:mm:ss',
-        )}登录\n`,
+        )} 登录\n`,
         'UTF8',
       )
+      writerStream.end()
       ctx.body = {
         code: '1000',
         message: '请求成功',
@@ -47,8 +66,8 @@ router.post('/login', verifyAppBaseInfo, async ctx => {
           username: user.username,
           uid: user.uid,
           vip: user.vip,
-          vipStartTime: user.vipStartTime,
-          vipEndTime: user.vipEndTime,
+          vipStartTime: filterStartTime(user.vipStartTime),
+          vipEndTime: filterEndTime(user.vipEndTime),
           date: user.date,
           token,
         },
@@ -109,15 +128,15 @@ router.post('/register', verifyAppBaseInfo, async ctx => {
           avatar: '/avatar/avatar.png',
           date: moment().format('YYYY-MM-DD'),
           username: '彼岸自在',
-          vip_start: 0,
-          vip_expiry: 0,
+          vipStartTime: 0,
+          vipEndTime: 0,
           vip: false,
         })
         await newUser.save()
         writerStream.write(
           `用户：${tel} IP：${clientIp} 在${moment().format(
             'YYYY-MM-DD HH:mm:ss',
-          )}注册\n`,
+          )} 注册\n`,
           'UTF8',
         )
         writerStream.end()
@@ -158,8 +177,8 @@ router.post('/getdata', verifyAppBaseInfo, verifyUserLogin, async ctx => {
             username: user.username,
             uid: user.uid,
             vip: user.vip,
-            vipStartTime: user.vipStartTime,
-            vipEndTime: user.vipEndTime,
+            vipStartTime: filterStartTime(user.vipStartTime),
+            vipEndTime: filterEndTime(user.vipEndTime),
             date: user.date,
             token,
           },
@@ -226,7 +245,7 @@ router.post('/changepassword', verifyAppBaseInfo, async ctx => {
           writerStream.write(
             `用户：${tel} IP：${clientIp} 在${moment().format(
               'YYYY-MM-DD HH:mm:ss',
-            )}修改密码\n`,
+            )} 修改密码\n`,
             'UTF8',
           )
           writerStream.end()
@@ -346,39 +365,28 @@ router.post('/favourite', verifyAppBaseInfo, verifyUserLogin, async ctx => {
     const { type, length, word } = ctx.request.body
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
-    let success
     if (res.user) {
-      await UserModel.findOne({ tel: res.user }, (err, res) => {
-        if (err) {
-          console.log(err)
-        } else {
-          if (res.favourites.length >= 500) {
-            success = false
-          } else {
-            const index = res.favourites.findIndex(e => e.word === word)
-            if (index == -1) {
-              res.favourites.unshift({
-                type,
-                length,
-                word,
-              })
-            }
-            res.save()
-            success = true
-          }
+      const user = await UserModel.findOne({ tel: res.user })
+      if (user.favourites.length >= 500) {
+        ctx.body = {
+          code: '2003',
+          message: '收藏网名数量已满',
         }
-        if (success) {
-          ctx.body = {
-            code: '1000',
-            message: '请求成功',
-          }
-        } else {
-          ctx.body = {
-            code: '2003',
-            message: '收藏网名数量已满',
-          }
+      } else {
+        const index = user.favourites.findIndex(e => e.word === word)
+        if (index == -1) {
+          user.favourites.unshift({
+            type,
+            length,
+            word,
+          })
         }
-      })
+        user.save()
+        ctx.body = {
+          code: '1000',
+          message: '请求成功',
+        }
+      }
     } else {
       ctx.body = {
         code: '3008',
@@ -404,17 +412,12 @@ router.delete(
       const jwt = new JWT(ctx.request.header.authorization)
       const res = jwt.verifyToken()
       if (res.user) {
-        await UserModel.findOne({ tel: res.user }, (err, res) => {
-          if (err) {
-            console.log(err)
-          } else {
-            const index = res.favourites.findIndex(e => e.word === word)
-            if (index != -1) {
-              res.favourites.splice(index, 1)
-            }
-            res.save()
-          }
-        })
+        const user = await UserModel.findOne({ tel: res.user })
+        const index = user.favourites.findIndex(e => e.word === word)
+        if (index != -1) {
+          user.favourites.splice(index, 1)
+        }
+        user.save()
         ctx.body = {
           code: '1000',
           message: '请求成功',
@@ -536,8 +539,8 @@ router.post('/', verifyAdminLogin, async ctx => {
       username,
       password,
       vip,
-      vip_start,
-      vip_expiry,
+      vipStartTime,
+      vipEndTime,
     } = ctx.request.body
     const userDoc = await UserModel.findOne({ tel })
     if (userDoc) {
@@ -554,8 +557,8 @@ router.post('/', verifyAdminLogin, async ctx => {
         username,
         password: encrypt(password),
         vip,
-        vip_start,
-        vip_expiry,
+        vipStartTime,
+        vipEndTime,
         date: moment().format('YYYY-MM-DD'),
       })
       await newUser.save()
@@ -581,8 +584,8 @@ router.put('/:id', verifyAdminLogin, async ctx => {
       username,
       password,
       vip,
-      vip_start,
-      vip_expiry,
+      vipStartTime,
+      vipEndTime,
     } = ctx.request.body
     const result = await UserModel.updateOne(
       { _id: ctx.params.id },
@@ -593,8 +596,8 @@ router.put('/:id', verifyAdminLogin, async ctx => {
           username,
           password,
           vip,
-          vip_start,
-          vip_expiry,
+          vipStartTime,
+          vipEndTime,
         },
       },
     )
@@ -636,7 +639,7 @@ router.delete('/:id', verifyAdminLogin, async ctx => {
       writerStream.write(
         `用户：${tel} IP：${clientIp} 在${moment().format(
           'YYYY-MM-DD HH:mm:ss',
-        )}被删除\n`,
+        )} 被删除\n`,
         'UTF8',
       )
       writerStream.end()
@@ -648,6 +651,84 @@ router.delete('/:id', verifyAdminLogin, async ctx => {
       ctx.body = {
         code: '2000',
         message: '删除失败',
+      }
+    }
+  } catch (err) {
+    console.log(err)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
+router.post('/purchase', verifyAppBaseInfo, verifyUserLogin, async ctx => {
+  try {
+    const clientIp = ctx.req.connection.remoteAddress
+    const { tel, planId } = ctx.request.body
+    const jwt = new JWT(ctx.request.header.authorization)
+    const res = jwt.verifyToken()
+    if (res.user === tel) {
+      const user = await UserModel.findOne({ tel })
+      if (user) {
+        const writerStream = fs.createWriteStream(
+          process.cwd() + '/logs/purchase.log',
+          {
+            flags: 'a',
+          },
+        )
+        writerStream.on('error', err => {
+          console.log(err.stack)
+        })
+        //会员计划
+        let plan
+        user.vip = true
+        user.vipStartTime = Date.now()
+        const vipEndTime = user.vipEndTime ? user.vipEndTime : Date.now()
+        switch (planId) {
+          case 1:
+            user.vipEndTime = vipEndTime + 2678400000
+            plan = '一个月'
+            break
+          case 2:
+            user.vipEndTime = vipEndTime + 8035200000
+            plan = '三个月'
+            break
+          case 3:
+            user.vipEndTime = vipEndTime + 16070400000
+            plan = '半年'
+            break
+          case 4:
+            user.vipEndTime = vipEndTime + 31536000000
+            plan = '一年'
+            break
+          case 5:
+            user.vipEndTime = -1
+            plan = '永久'
+            break
+        }
+        writerStream.write(
+          `用户：${tel} IP：${clientIp} 在${moment().format(
+            'YYYY-MM-DD HH:mm:ss',
+          )} 购买${plan}会员\n`,
+          'UTF8',
+        )
+        user.save()
+        writerStream.end()
+        ctx.body = {
+          code: '1000',
+          message: '请求成功',
+        }
+      } else {
+        ctx.body = {
+          code: '3008',
+          message: '无此用户信息，请重新登录',
+        }
+      }
+    } else {
+      ctx.body = {
+        code: '3007',
+        message: '登录状态失效，请重新登录',
       }
     }
   } catch (err) {
