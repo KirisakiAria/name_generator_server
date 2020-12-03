@@ -221,7 +221,7 @@ router.post('/search', verifyAppBaseInfo, verifyUserLogin, async ctx => {
             list,
           },
         }
-      } else {
+      } else if (searchType == 'SearchType.GENERATE') {
         if (parseInt(currentPage) > 0) {
           return (ctx.body = {
             code: '1000',
