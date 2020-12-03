@@ -254,7 +254,7 @@ router.post('/search', verifyAppBaseInfo, verifyUserLogin, async ctx => {
           data: {
             isUpdate: false,
             shanglian: searchContent,
-            xialianLocker: '0',
+            xialianLocker: '0'.repeat(searchContent.length),
           },
           url: 'http://duilian.msra.cn/app/CoupletsWS_V2.asmx/GetXiaLian',
         }
