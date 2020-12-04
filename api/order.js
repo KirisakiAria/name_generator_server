@@ -11,18 +11,15 @@ const router = new Router({ prefix: '/order' })
 
 router.get('/my', verifyAppBaseInfo, verifyUserLogin, async ctx => {
   try {
-    const { pageSize, currentPage } = ctx.request.query
+    const { page } = ctx.request.query
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
     const pattern = new RegExp(res.user, 'i')
-    const condition = {
-      $or: [{ title: pattern }, { content: pattern }],
-    }
-    const list = await OrderModel.find(condition)
+    const list = await OrderModel.find({ tel: pattern })
       .sort({ _id: -1 })
-      .skip(parseInt(pageSize) * parseInt(currentPage))
-      .limit(parseInt(pageSize))
-    const total = await OrderModel.find(condition).countDocuments()
+      .skip(parseInt(15) * parseInt(page))
+      .limit(parseInt(15))
+    const total = await OrderModel.find({ tel: pattern }).countDocuments()
     ctx.body = {
       code: '1000',
       message: '请求成功',

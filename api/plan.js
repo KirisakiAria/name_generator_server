@@ -1,22 +1,17 @@
 const Router = require('@koa/router')
-const NotificationModel = require('../model/Plan')
+const PlanModel = require('../model/Plan')
 const { verifyAdminLogin, verifyLogin } = require('../utils/verify')
 
 const router = new Router({ prefix: '/plan' })
 
 router.get('/', verifyLogin, async ctx => {
   try {
-    const { pageSize, currentPage } = ctx.request.query
-    const list = await NotificationModel.find()
-      .skip(parseInt(pageSize) * parseInt(currentPage))
-      .limit(parseInt(pageSize))
-    const total = await NotificationModel.find().countDocuments()
+    const list = await PlanModel.find()
     ctx.body = {
       code: '1000',
       message: '请求成功',
       data: {
         list,
-        total,
       },
     }
   } catch (err) {
@@ -31,7 +26,7 @@ router.get('/', verifyLogin, async ctx => {
 router.post('/', verifyAdminLogin, async ctx => {
   try {
     const { planId, title, currentPrice, originalPrice } = ctx.request.body
-    const data = new NotificationModel({
+    const data = new PlanModel({
       planId,
       title,
       currentPrice,
@@ -54,7 +49,7 @@ router.post('/', verifyAdminLogin, async ctx => {
 router.put('/:id', verifyAdminLogin, async ctx => {
   try {
     const { planId, title, currentPrice, originalPrice } = ctx.request.body
-    const result = await NotificationModel.updateOne(
+    const result = await PlanModel.updateOne(
       { _id: ctx.params.id },
       {
         $set: {
@@ -88,7 +83,7 @@ router.put('/:id', verifyAdminLogin, async ctx => {
 router.post('/delete', verifyAdminLogin, async ctx => {
   try {
     const { items } = ctx.request.body
-    const result = await NotificationModel.deleteMany({ _id: { $in: items } })
+    const result = await PlanModel.deleteMany({ _id: { $in: items } })
     if (result.ok == 1 && result.deletedCount == items.length) {
       ctx.body = {
         code: '1000',
