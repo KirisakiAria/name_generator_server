@@ -1,5 +1,6 @@
 const Router = require('@koa/router')
 const OrderModel = require('../model/Order')
+const JWT = require('../utils/jwt')
 const {
   verifyAppBaseInfo,
   verifyUserLogin,
@@ -10,8 +11,10 @@ const router = new Router({ prefix: '/order' })
 
 router.get('/my', verifyAppBaseInfo, verifyUserLogin, async ctx => {
   try {
-    const { searchContent, pageSize, currentPage } = ctx.request.query
-    const pattern = new RegExp(searchContent, 'i')
+    const { pageSize, currentPage } = ctx.request.query
+    const jwt = new JWT(ctx.request.header.authorization)
+    const res = jwt.verifyToken()
+    const pattern = new RegExp(res.user, 'i')
     const condition = {
       $or: [{ title: pattern }, { content: pattern }],
     }
