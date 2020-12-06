@@ -1,7 +1,10 @@
 const fs = require('fs')
+const path = require('path')
 const moment = require('moment')
 const Router = require('@koa/router')
+const AlipaySdk = require('alipay-sdk')
 const UserModel = require('../model/User')
+const PlanModel = require('../model/Plan')
 const SMSModel = require('../model/SMS')
 const JWT = require('../utils/jwt')
 const router = new Router({ prefix: '/user' })
@@ -661,5 +664,93 @@ router.delete('/:id', verifyAdminLogin, async ctx => {
     }
   }
 })
+
+// router.post('/purchase', verifyAppBaseInfo, verifyUserLogin, async ctx => {
+//   try {
+//     const clientIp = ctx.req.connection.remoteAddress
+//     const { tel, planId, paymentMethod } = ctx.request.body
+//     const jwt = new JWT(ctx.request.header.authorization)
+//     const res = jwt.verifyToken()
+//     if (res.user === tel) {
+//       const user = await UserModel.findOne({ tel })
+//       if (user) {
+//         const writerStream = fs.createWriteStream(
+//           process.cwd() + '/logs/order.log',
+//           {
+//             flags: 'a',
+//           },
+//         )
+//         writerStream.on('error', err => {
+//           console.log(err.stack)
+//         })
+//         //价格
+//         const plan = await PlanModel.findOne({ planId })
+//         //会员计划
+//         //let plan
+//         // user.vip = true
+//         // user.vipStartTime = Date.now()
+//         // const vipEndTime = user.vipEndTime ? user.vipEndTime : Date.now()
+//         if (paymentMethod == '1') {
+//           const alipaySdk = new AlipaySdk.default({
+//             appId: '2021000116660806',
+//             privateKey: fs.readFileSync(
+//               path.join(__dirname, '../pay/pem/private_key.pem'),
+//               'ascii',
+//             ),
+//             alipayRootCertPath: path.join(
+//               __dirname,
+//               '../pay/crt/alipayRootCert.crt',
+//             ),
+//             appCertPath: path.join(
+//               __dirname,
+//               '../pay/crt/appCertPublicKey.crt',
+//             ),
+//             alipayPublicCertPath: path.join(
+//               __dirname,
+//               '../pay/crt/alipayCertPublicKey_RSA2.crt',
+//             ),
+//             gateway: 'https://openapi.alipaydev.com/gateway.do',
+//           })
+//           const result = await alipaySdk.exec('alipay.trade.app.pay', {
+//             // 通过 bizContent 传递请求参数
+//             bizContent: {
+//               tradeNo: '',
+//               outTradeNo: '',
+//               operatorId: '',
+//             },
+//           })
+//           console.log(result)
+//         }
+//         // writerStream.write(
+//         //   `用户：${tel} IP：${clientIp} 在${moment().format(
+//         //     'YYYY-MM-DD HH:mm:ss',
+//         //   )} 购买${plan}会员\n`,
+//         //   'UTF8',
+//         // )
+//         writerStream.end()
+//         ctx.body = {
+//           code: '1000',
+//           message: '请求成功',
+//         }
+//       } else {
+//         ctx.body = {
+//           code: '3008',
+//           message: '无此用户信息，请重新登录',
+//         }
+//       }
+//     } else {
+//       ctx.body = {
+//         code: '3007',
+//         message: '登录状态失效，请重新登录',
+//       }
+//     }
+//   } catch (err) {
+//     console.log(err)
+//     ctx.body = {
+//       code: '9000',
+//       message: '请求错误',
+//     }
+//   }
+// })
 
 module.exports = router

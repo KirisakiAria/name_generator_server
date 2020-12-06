@@ -12,7 +12,7 @@ class JWT {
   //生成
   generateToken() {
     const cert = fs.readFileSync(
-      path.resolve(__dirname, '../pem/private_key_pkcs8.pem'),
+      path.resolve(__dirname, '../pem/rsa_private_key.pem'),
     ) //私钥 可以自己生成
     const token = jwt.sign(
       {
@@ -23,9 +23,9 @@ class JWT {
       {
         header: {
           typ: 'JWT',
-          alg: 'RS256',
+          alg: 'RS512',
         },
-        algorithm: 'RS256',
+        algorithm: 'RS512',
         //expiresIn: '15 days',
         issuer: 'bigteacher',
         audience: 'bigteacher',
@@ -42,7 +42,7 @@ class JWT {
     ) //公钥 可以自己生成
     let res
     try {
-      const result = jwt.verify(token, cert, { algorithms: ['RS256'] })
+      const result = jwt.verify(token, cert, { algorithms: ['RS512'] })
       if (result) {
         res = {
           code: '1000',
