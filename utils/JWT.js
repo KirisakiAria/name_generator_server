@@ -12,7 +12,7 @@ class JWT {
   //生成
   generateToken() {
     const cert = fs.readFileSync(
-      path.resolve(__dirname, '../pem/private_pkcs8.pem'),
+      path.resolve(__dirname, '../pem/private_key_pkcs8.pem'),
     ) //私钥 可以自己生成
     const token = jwt.sign(
       {

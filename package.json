@@ -12,6 +12,7 @@
   "dependencies": {
     "@koa/multer": "^3.0.0",
     "@koa/router": "^9.4.0",
+    "alipay-sdk": "^3.1.5",
     "axios": "^0.19.2",
     "fast-xml-parser": "^3.17.4",
     "he": "^1.2.0",
