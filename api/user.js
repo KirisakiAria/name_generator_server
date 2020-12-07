@@ -8,7 +8,7 @@ const UserModel = require('../model/User')
 const PlanModel = require('../model/Plan')
 const SMSModel = require('../model/SMS')
 const JWT = require('../utils/jwt')
-const config = require('../config/config')
+//const config = require('../config/config')
 const router = new Router({ prefix: '/user' })
 const encrypt = require('../utils/encryption')
 const {
@@ -690,15 +690,15 @@ router.post('/purchase', verifyAppBaseInfo, verifyUserLogin, async ctx => {
           /** 调用 setMethod 并传入 get，会返回可以跳转到支付页面的 url **/
           formData.setMethod('get')
           formData.addField('bizContent', {
-            Body: '订单描述',
-            TotalAmount: plan.currentPrice + '',
-            Subject: `彼岸自在${plan.title}期VIP会员`,
-            ProductCode: 'QUICK_MSECURITY_PAY',
-            OutTradeNo: Date.now() + tel + Math.ceil(Math.round * 10000),
-            extendParams: { HbFqNum: '3', HbFqSellerPercent: '100' },
+            //Body: '订单描述',
+            totalAmount: parseFloat(plan.currentPrice).toFixed(2).toString(),
+            subject: '啊',
+            //ProductCode: 'QUICK_MSECURITY_PAY',
+            outTradeNo: '120000052',
+            //extendParams: { HbFqNum: '3', HbFqSellerPercent: '100' },
           })
           /** 异步通知地址，商户外网可以post访问的异步地址，用于接收支付宝返回的支付结果，如果未收到该通知可参考该文档进行确认：https://opensupport.alipay.com/support/helpcenter/193/201602475759 **/
-          formData.addField('notifyUrl', '')
+          //formData.addField('notifyUrl', 'https://www.baidu.com')
           const result = await alipaySdk.exec(
             'alipay.trade.app.pay',
             {},
@@ -731,25 +731,25 @@ router.post('/purchase', verifyAppBaseInfo, verifyUserLogin, async ctx => {
   }
 })
 
-router.post('/createOrder', verifyAppBaseInfo, verifyUserLogin, async ctx => {
-  // const clientIp = ctx.req.connection.remoteAddress
-  // const writerStream = fs.createWriteStream(
-  //     process.cwd() + '/logs/order.log',
-  //     {
-  //       flags: 'a',
-  //     },
-  //   )
-  //let plan
-  // user.vip = true
-  // user.vipStartTime = Date.now()
-  // const vipEndTime = user.vipEndTime ? user.vipEndTime : Date.now()
-  // writerStream.write(
-  //   `用户：${tel} IP：${clientIp} 在${moment().format(
-  //     'YYYY-MM-DD HH:mm:ss',
-  //   )} 购买${plan}会员\n`,
-  //   'UTF8',
-  // )
-  //writerStream.end()
-})
+// router.post('/createOrder', verifyAppBaseInfo, verifyUserLogin, async ctx => {
+//   const clientIp = ctx.req.connection.remoteAddress
+//   const writerStream = fs.createWriteStream(
+//       process.cwd() + '/logs/order.log',
+//       {
+//         flags: 'a',
+//       },
+//     )
+//   let plan
+//   user.vip = true
+//   user.vipStartTime = Date.now()
+//   const vipEndTime = user.vipEndTime ? user.vipEndTime : Date.now()
+//   writerStream.write(
+//     `用户：${tel} IP：${clientIp} 在${moment().format(
+//       'YYYY-MM-DD HH:mm:ss',
+//     )} 购买${plan}会员\n`,
+//     'UTF8',
+//   )
+//   writerStream.end()
+// })
 
 module.exports = router
