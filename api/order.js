@@ -106,18 +106,8 @@ router.post('/', verifyAdminLogin, async ctx => {
 
 router.put('/:id', verifyAdminLogin, async ctx => {
   try {
-    const { orderNo, tel, price, paymentMethod } = ctx.request.body
-    const result = await OrderModel.updateOne(
-      { _id: ctx.params.id },
-      {
-        $set: {
-          orderNo,
-          tel,
-          price,
-          paymentMethod,
-        },
-      },
-    )
+    const body = ctx.request.body
+    const result = await OrderModel.updateOne({ _id: ctx.params.id }, body)
     if (result.ok == 1 && result.nModified == 1) {
       ctx.body = {
         code: '1000',

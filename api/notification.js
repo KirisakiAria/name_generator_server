@@ -58,15 +58,10 @@ router.post('/', verifyAdminLogin, async ctx => {
 
 router.put('/:id', verifyAdminLogin, async ctx => {
   try {
-    const { title, content } = ctx.request.body
+    const body = ctx.request.body
     const result = await NotificationModel.updateOne(
       { _id: ctx.params.id },
-      {
-        $set: {
-          title,
-          content,
-        },
-      },
+      body,
     )
     if (result.ok == 1 && result.nModified == 1) {
       ctx.body = {

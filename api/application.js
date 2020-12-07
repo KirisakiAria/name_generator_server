@@ -53,27 +53,8 @@ router.get('/update', verifyAppBaseInfo, async ctx => {
 router.put('/:id', verifyAdminLogin, async ctx => {
   try {
     const { id } = ctx.params
-    const {
-      secret,
-      appName,
-      packageName,
-      buildNumber,
-      version,
-      downloadLink,
-    } = ctx.request.body
-    const result = await ApplicationModel.updateOne(
-      { _id: id },
-      {
-        $set: {
-          secret,
-          appName,
-          packageName,
-          buildNumber,
-          version,
-          downloadLink,
-        },
-      },
-    )
+    const body = ctx.request.body
+    const result = await ApplicationModel.updateOne({ _id: id }, body)
     if (result.ok == 1 && result.nModified == 1) {
       ctx.body = {
         code: '1000',

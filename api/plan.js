@@ -25,13 +25,8 @@ router.get('/', verifyLogin, async ctx => {
 
 router.post('/', verifyAdminLogin, async ctx => {
   try {
-    const { planId, title, currentPrice, originalPrice } = ctx.request.body
-    const data = new PlanModel({
-      planId,
-      title,
-      currentPrice,
-      originalPrice,
-    })
+    const body = ctx.request.body
+    const data = new PlanModel(body)
     await data.save()
     ctx.body = {
       code: '1000',
@@ -48,18 +43,8 @@ router.post('/', verifyAdminLogin, async ctx => {
 
 router.put('/:id', verifyAdminLogin, async ctx => {
   try {
-    const { planId, title, currentPrice, originalPrice } = ctx.request.body
-    const result = await PlanModel.updateOne(
-      { _id: ctx.params.id },
-      {
-        $set: {
-          planId,
-          title,
-          currentPrice,
-          originalPrice,
-        },
-      },
-    )
+    const body = ctx.request.body
+    const result = await PlanModel.updateOne({ _id: ctx.params.id }, body)
     if (result.ok == 1 && result.nModified == 1) {
       ctx.body = {
         code: '1000',

@@ -111,19 +111,8 @@ router.get('/vip', async ctx => {
 
 router.put('/:id', verifyAdminLogin, async ctx => {
   try {
-    const { privacyPolicy, terms, usage, update, vip } = ctx.request.body
-    const result = await ServiceModel.updateOne(
-      { _id: ctx.params.id },
-      {
-        $set: {
-          privacyPolicy,
-          terms,
-          usage,
-          update,
-          vip,
-        },
-      },
-    )
+    const body = ctx.request.body
+    const result = await ServiceModel.updateOne({ _id: ctx.params.id }, body)
     if (result.ok == 1 && result.nModified == 1) {
       ctx.body = {
         code: '1000',

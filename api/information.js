@@ -39,22 +39,8 @@ router.get('/error', verifyAdminLogin, async ctx => {
 
 router.post('/error', verifyAppBaseInfo, async ctx => {
   try {
-    const {
-      appVersion,
-      brand,
-      system,
-      systemVersion,
-      error,
-      stackTrace,
-    } = ctx.request.body
-    const data = new ErrorModel({
-      appVersion,
-      brand,
-      system,
-      systemVersion,
-      error,
-      stackTrace,
-    })
+    const body = ctx.request.body
+    const data = new ErrorModel(body)
     await data.save()
     ctx.body = {
       code: '1000',

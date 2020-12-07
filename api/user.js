@@ -581,29 +581,8 @@ router.post('/', verifyAdminLogin, async ctx => {
 
 router.put('/:id', verifyAdminLogin, async ctx => {
   try {
-    const {
-      avatar,
-      tel,
-      username,
-      password,
-      vip,
-      vipStartTime,
-      vipEndTime,
-    } = ctx.request.body
-    const result = await UserModel.updateOne(
-      { _id: ctx.params.id },
-      {
-        $set: {
-          avatar,
-          tel,
-          username,
-          password,
-          vip,
-          vipStartTime,
-          vipEndTime,
-        },
-      },
-    )
+    const body = ctx.request.body
+    const result = await UserModel.updateOne({ _id: ctx.params.id }, body)
     if (result.ok == 1 && result.nModified == 1) {
       ctx.body = {
         code: '1000',
