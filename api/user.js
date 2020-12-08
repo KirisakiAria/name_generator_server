@@ -513,13 +513,20 @@ router.put('/username', verifyAppBaseInfo, verifyUserLogin, async ctx => {
 
 router.get('/', verifyAdminLogin, async ctx => {
   try {
-    const { searchContent, pageSize, currentPage } = ctx.request.query
+    const { searchContent, pageSize, currentPage, sort } = ctx.request.query
     const pattern = new RegExp(searchContent, 'i')
+    let sortCondition = { _id: -1 }
     const condition = {
       $or: [{ tel: pattern }, { username: pattern }],
     }
+    const sortData = JSON.parse(sort)
+    if (sortData.prop) {
+      sortCondition = {
+        [sortData.prop]: sortData.order == 'descending' ? -1 : 1,
+      }
+    }
     const list = await UserModel.find(condition)
-      .sort({ _id: -1 })
+      .sort(sortCondition)
       .skip(parseInt(pageSize) * parseInt(currentPage))
       .limit(parseInt(pageSize))
     const total = await UserModel.find(condition).countDocuments()
