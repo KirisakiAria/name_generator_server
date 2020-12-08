@@ -62,6 +62,8 @@ router.post('/login', verifyAppBaseInfo, async ctx => {
         'UTF8',
       )
       writerStream.end()
+      user.lastLoginTime = moment().format('YYYY-MM-DD HH:mm:ss')
+      await user.save()
       ctx.body = {
         code: '1000',
         message: '请求成功',
@@ -168,6 +170,8 @@ router.post('/getdata', verifyAppBaseInfo, verifyUserLogin, async ctx => {
     if (res.user === tel) {
       const user = await UserModel.findOne({ tel })
       if (user) {
+        user.lastLoginTime = moment().format('YYYY-MM-DD HH:mm:ss')
+        await user.save()
         const jwt = new JWT({
           user: tel,
           role: 2,
@@ -666,7 +670,7 @@ router.post('/purchase', verifyAppBaseInfo, verifyUserLogin, async ctx => {
         const plan = await PlanModel.findOne({ planId })
         if (paymentMethod == '1') {
           const alipaySdk = new AlipaySdk.default({
-            appId: '2021000116660806',
+            appId: '2021002115614424',
             signType: 'RSA2',
             privateKey: fs.readFileSync(
               path.resolve(__dirname, '../pay/pem/private_key.pem'),

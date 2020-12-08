@@ -11,6 +11,7 @@ const userSchema = new Schema({
   vipStartTime: Number,
   vipEndTime: Number,
   vip: Boolean,
+  lastLoginTime: String,
   history: [],
   favourites: [],
 })
