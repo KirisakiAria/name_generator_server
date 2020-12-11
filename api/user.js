@@ -657,7 +657,7 @@ router.delete('/:id', verifyAdminLogin, async ctx => {
   }
 })
 
-router.post('/purchase', verifyAppBaseInfo, verifyUserLogin, async ctx => {
+router.post('/pay', verifyAppBaseInfo, verifyUserLogin, async ctx => {
   try {
     const { tel, planId, paymentMethod } = ctx.request.body
     const jwt = new JWT(ctx.request.header.authorization)
@@ -678,35 +678,35 @@ router.post('/purchase', verifyAppBaseInfo, verifyUserLogin, async ctx => {
         if (paymentMethod == '1') {
           const alipaySdk = new AlipaySdk.default({
             appId: '2021002115614424',
-            signType: 'RSA2',
             privateKey: fs.readFileSync(
               path.resolve(__dirname, '../pay/pem/private_key.pem'),
               'utf-8',
             ),
+            alipayPublicKey:
+              'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwwg4dLRqOqiTVs/IjUZUqggMRK6vdkPKQxTZVeklFhDwufY8ut4W2SQBnJyi7+A3HKAI7PxZfB7qFam4OkyVVjog2KWYVM6Gyuz8l5Uzn+SPL/jCl6N+zpka199WCA/wm4sCtjQte4vShrLJoyOwXOC08h4uuzXx/7sjHRZSk1XCHznIKa+ZnZmYx1tpx+FFfLvBHHErvNcJ3qS+46H4hOrfhFMPqvfWTc0YBEj2//IzsafP3x8o10q++3A/BhU4WBps3R6xOkuIr6chhYC3XS0VpO6+hzajdkxS1F+zjnFbInpECMhOxClIJ6QEKh5swFDElz+2EoCZ5kKNvvKOsQIDAQAB',
             alipayRootCertPath: path.resolve(
               __dirname,
               '../pay/crt/alipayRootCert.crt',
             ),
             appCertPath: path.resolve(
               __dirname,
-              '../pay/crt/appCertPublicKey.crt',
+              '../pay/crt/appCertPublicKey_2021002115614424.crt',
             ),
             alipayPublicCertPath: path.resolve(
               __dirname,
               '../pay/crt/alipayCertPublicKey_RSA2.crt',
             ),
-            gateway: 'https://openapi.alipaydev.com/gateway.do',
           })
           const formData = new AliPayForm.default()
           /** 调用 setMethod 并传入 get，会返回可以跳转到支付页面的 url **/
           formData.setMethod('get')
           formData.addField('bizContent', {
-            //Body: '订单描述',
+            body: `「彼岸自在」VIP会员`,
             totalAmount: parseFloat(plan.currentPrice).toFixed(2).toString(),
-            subject: '啊',
-            //ProductCode: 'QUICK_MSECURITY_PAY',
-            outTradeNo: '120000052',
-            //extendParams: { HbFqNum: '3', HbFqSellerPercent: '100' },
+            subject: `「彼岸自在」VIP会员 期限：${plan.title}`,
+            productCode: 'QUICK_MSECURITY_PAY',
+            outTradeNo: Date.now() + tel,
+            // extendParams: { HbFqNum: '3', HbFqSellerPercent: '100' },
           })
           /** 异步通知地址，商户外网可以post访问的异步地址，用于接收支付宝返回的支付结果，如果未收到该通知可参考该文档进行确认：https://opensupport.alipay.com/support/helpcenter/193/201602475759 **/
           //formData.addField('notifyUrl', 'https://www.baidu.com')
@@ -718,7 +718,7 @@ router.post('/purchase', verifyAppBaseInfo, verifyUserLogin, async ctx => {
           ctx.body = {
             code: '1000',
             message: '请求成功',
-            data: result,
+            data: result.replace('https://openapi.alipay.com/gateway.do?', ''),
           }
         }
       } else {
