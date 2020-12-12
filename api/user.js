@@ -6,6 +6,7 @@ const AlipaySdk = require('alipay-sdk')
 const AliPayForm = require('alipay-sdk/lib/form')
 const UserModel = require('../model/User')
 const PlanModel = require('../model/Plan')
+const OrderModel = require('../model/Order')
 const SMSModel = require('../model/SMS')
 const JWT = require('../utils/jwt')
 //const config = require('../config/config')
@@ -21,7 +22,7 @@ const filterStartTime = value => {
   if (!value) {
     return '无'
   } else {
-    return moment(value).format('YYYY-MM-DD hh:mm:ss')
+    return moment(value).format('YYYY-MM-DD HH:mm:ss')
   }
 }
 
@@ -29,7 +30,7 @@ const filterEndTime = value => {
   if (!value) {
     return '无'
   } else if (value > 0) {
-    return moment(value).format('YYYY-MM-DD hh:mm:ss')
+    return moment(value).format('YYYY-MM-DD HH:mm:ss')
   } else {
     return '永久'
   }
@@ -697,15 +698,21 @@ router.post('/pay', verifyAppBaseInfo, verifyUserLogin, async ctx => {
               '../pay/crt/alipayCertPublicKey_RSA2.crt',
             ),
           })
+          const outTradeNo =
+            Date.now() + tel + Math.round(Math.random() * 10000)
+          const body = `「彼岸自在」VIP会员 期限：${plan.title}`
+          const totalAmount = parseFloat(plan.currentPrice)
+            .toFixed(2)
+            .toString()
           const formData = new AliPayForm.default()
           /** 调用 setMethod 并传入 get，会返回可以跳转到支付页面的 url **/
           formData.setMethod('get')
           formData.addField('bizContent', {
-            body: `「彼岸自在」VIP会员`,
-            totalAmount: parseFloat(plan.currentPrice).toFixed(2).toString(),
-            subject: `「彼岸自在」VIP会员 期限：${plan.title}`,
+            outTradeNo,
+            body,
+            totalAmount,
+            subject: body,
             productCode: 'QUICK_MSECURITY_PAY',
-            outTradeNo: Date.now() + tel,
             // extendParams: { HbFqNum: '3', HbFqSellerPercent: '100' },
           })
           /** 异步通知地址，商户外网可以post访问的异步地址，用于接收支付宝返回的支付结果，如果未收到该通知可参考该文档进行确认：https://opensupport.alipay.com/support/helpcenter/193/201602475759 **/
@@ -715,6 +722,16 @@ router.post('/pay', verifyAppBaseInfo, verifyUserLogin, async ctx => {
             {},
             { formData: formData },
           )
+          const order = new OrderModel({
+            orderNo: outTradeNo,
+            body,
+            tel,
+            price: totalAmount,
+            time: Date.now(),
+            paymentMethod,
+            status: false,
+          })
+          await order.save()
           ctx.body = {
             code: '1000',
             message: '请求成功',
@@ -742,25 +759,81 @@ router.post('/pay', verifyAppBaseInfo, verifyUserLogin, async ctx => {
   }
 })
 
-// router.post('/createOrder', verifyAppBaseInfo, verifyUserLogin, async ctx => {
-//   const clientIp = ctx.req.connection.remoteAddress
-//   const writerStream = fs.createWriteStream(
-//       process.cwd() + '/logs/order.log',
-//       {
-//         flags: 'a',
-//       },
-//     )
-//   let plan
-//   user.vip = true
-//   user.vipStartTime = Date.now()
-//   const vipEndTime = user.vipEndTime ? user.vipEndTime : Date.now()
-//   writerStream.write(
-//     `用户：${tel} IP：${clientIp} 在${moment().format(
-//       'YYYY-MM-DD HH:mm:ss',
-//     )} 购买${plan}会员\n`,
-//     'UTF8',
-//   )
-//   writerStream.end()
-// })
+router.post('/pay/success', verifyAppBaseInfo, verifyUserLogin, async ctx => {
+  try {
+    const clientIp = ctx.req.connection.remoteAddress
+    const { tel, orderNo, planId } = ctx.request.body
+    const jwt = new JWT(ctx.request.header.authorization)
+    const res = jwt.verifyToken()
+    if (res.user === tel) {
+      const user = await UserModel.findOne({ tel })
+      if (user) {
+        const writerStream = fs.createWriteStream(
+          process.cwd() + '/logs/order.log',
+          {
+            flags: 'a',
+          },
+        )
+        let plan
+        user.vip = true
+        user.vipStartTime = Date.now()
+        const vipStartTime = user.vipEndTime ? user.vipEndTime : vipStartTime
+        switch (planId) {
+          case '1':
+            user.vipEndTime = vipStartTime + 2678400000
+            plan = '一个月'
+            break
+          case '2':
+            user.vipEndTime = vipStartTime + 8035200000
+            plan = '三个月'
+            break
+          case '3':
+            user.vipEndTime = vipStartTime + 16070400000
+            plan = '半年'
+            break
+          case '4':
+            user.vipEndTime = vipStartTime + 31536000000
+            plan = '一年'
+            break
+          case '5':
+            user.vipEndTime = -1
+            plan = '永久'
+            break
+        }
+        await user.save()
+        const order = await OrderModel.findOne({ orderNo })
+        order.status = true
+        await order.save()
+        writerStream.write(
+          `用户：${tel} IP：${clientIp} 在${moment().format(
+            'YYYY-MM-DD HH:mm:ss',
+          )} 购买${plan}会员\n`,
+          'UTF8',
+        )
+        writerStream.end()
+        ctx.body = {
+          code: '1000',
+          message: '支付成功',
+        }
+      } else {
+        ctx.body = {
+          code: '3008',
+          message: '无此用户信息，请重新登录',
+        }
+      }
+    } else {
+      ctx.body = {
+        code: '3007',
+        message: '登录状态失效，请重新登录',
+      }
+    }
+  } catch (err) {
+    console.log(err)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
 
 module.exports = router

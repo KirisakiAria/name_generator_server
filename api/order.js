@@ -82,13 +82,22 @@ router.get('/', verifyAdminLogin, async ctx => {
 
 router.post('/', verifyAdminLogin, async ctx => {
   try {
-    const { orderNo, tel, price, paymentMethod } = ctx.request.body
+    const {
+      orderNo,
+      body,
+      tel,
+      price,
+      paymentMethod,
+      status,
+    } = ctx.request.body
     const data = new OrderModel({
       orderNo,
+      body,
       tel,
       price,
       time: Date.now(),
       paymentMethod,
+      status,
     })
     await data.save()
     ctx.body = {
