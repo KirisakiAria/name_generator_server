@@ -26,7 +26,7 @@ if (cluster.isMaster) {
         console.log('数据库连接成功，端口为27017')
       },
       err => {
-        console.log(`数据库连接失败！错误：${err}`.red)
+        console.log(`数据库连接失败！错误：${err}`)
       },
     )
   const httpServer = http.createServer(app.callback())
