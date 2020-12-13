@@ -3,5 +3,5 @@ module.exports = {
     'mongodb://kirisakiaria:PbVAFRa1DcdkIa2y@localhost:27017/name_generator?authSource=admin?authMechanism=SCRAM-SHA-256',
   port: 2077,
   apiVersion: 'v1',
-  alipayAppId: '',
+  alipayAppId: '2021002115614424',
 }

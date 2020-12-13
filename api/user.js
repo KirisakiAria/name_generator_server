@@ -9,7 +9,7 @@ const PlanModel = require('../model/Plan')
 const OrderModel = require('../model/Order')
 const SMSModel = require('../model/SMS')
 const JWT = require('../utils/jwt')
-//const config = require('../config/config')
+const config = require('../config/config')
 const router = new Router({ prefix: '/user' })
 const encrypt = require('../utils/encryption')
 const {
@@ -678,7 +678,7 @@ router.post('/pay', verifyAppBaseInfo, verifyUserLogin, async ctx => {
         const plan = await PlanModel.findOne({ planId })
         if (paymentMethod == '1') {
           const alipaySdk = new AlipaySdk.default({
-            appId: '2021002115614424',
+            appId: config.alipayAppId,
             privateKey: fs.readFileSync(
               path.resolve(__dirname, '../pay/pem/private_key.pem'),
               'utf-8',

@@ -61,6 +61,11 @@ const verifyUserLogin = async (ctx, next) => {
   if (res.code == '1000' && res.role == 2) {
     const user = await UserModel.findOne({ tel: res.user })
     if (user) {
+      const date = Date.now()
+      if (date > user.vipEndTime) {
+        user.vip = false
+        await user.save()
+      }
       await next()
     } else {
       ctx.body = {
@@ -98,6 +103,11 @@ const verifyLogin = async (ctx, next) => {
   } else if (res.code == '1000' && res.role == 2) {
     const user = await UserModel.findOne({ tel: res.user })
     if (user) {
+      const date = Date.now()
+      if (date > user.vipEndTime) {
+        user.vip = false
+        await user.save()
+      }
       await next()
     } else {
       ctx.body = {

@@ -1,4 +1,5 @@
 const Router = require('@koa/router')
+const moment = require('moment')
 const OrderModel = require('../model/Order')
 const JWT = require('../utils/jwt')
 const {
@@ -15,11 +16,16 @@ router.get('/my', verifyAppBaseInfo, verifyUserLogin, async ctx => {
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
     const pattern = new RegExp(res.user, 'i')
-    const list = await OrderModel.find({ tel: pattern })
+    let list = await OrderModel.find({ tel: pattern })
       .sort({ _id: -1 })
       .skip(parseInt(15) * parseInt(page))
       .limit(parseInt(15))
     const total = await OrderModel.find({ tel: pattern }).countDocuments()
+    list = list.map(e =>
+      Object.assign(e.toObject(), {
+        convertedTime: moment(e.time).format('YYYY-MM-DD HH:mm:ss'),
+      }),
+    )
     ctx.body = {
       code: '1000',
       message: '请求成功',
