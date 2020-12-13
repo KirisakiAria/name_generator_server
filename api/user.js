@@ -777,7 +777,9 @@ router.post('/pay/success', verifyAppBaseInfo, verifyUserLogin, async ctx => {
         let plan
         user.vip = true
         user.vipStartTime = Date.now()
-        const vipStartTime = user.vipEndTime ? user.vipEndTime : vipStartTime
+        const vipStartTime = user.vipEndTime
+          ? user.vipEndTime
+          : user.vipStartTime
         switch (planId) {
           case '1':
             user.vipEndTime = vipStartTime + 2678400000
