@@ -1,7 +1,7 @@
 const Router = require('@koa/router')
 const ClassifyModel = require('../model/Classify')
 const PaymentMethodModel = require('../model/PaymentMethod')
-const { verifyAdminLogin } = require('../utils/verify')
+const { verifyAdminLogin, verifyLogin } = require('../utils/verify')
 
 const router = new Router({ prefix: '/data_dictionary' })
 
@@ -124,7 +124,7 @@ router.post('/classify/delete', verifyAdminLogin, async ctx => {
 })
 
 //支付方式
-router.get('/paymentmethod', verifyAdminLogin, async ctx => {
+router.get('/paymentmethod', verifyLogin, async ctx => {
   try {
     const { all, searchContent, pageSize, currentPage } = ctx.request.query
     const pattern = new RegExp(searchContent, 'i')
@@ -134,7 +134,6 @@ router.get('/paymentmethod', verifyAdminLogin, async ctx => {
       list = await PaymentMethodModel.find({ name: pattern })
     } else {
       list = await PaymentMethodModel.find({ name: pattern })
-        .sort({ _id: -1 })
         .skip(parseInt(pageSize) * parseInt(currentPage))
         .limit(parseInt(pageSize))
       total = await PaymentMethodModel.find({ name: pattern }).countDocuments()
