@@ -62,7 +62,7 @@ const verifyUserLogin = async (ctx, next) => {
     const user = await UserModel.findOne({ tel: res.user })
     if (user) {
       const date = Date.now()
-      if (date > user.vipEndTime) {
+      if (date > user.vipEndTime && user.vipEndTime != -1) {
         user.vip = false
         await user.save()
       }
@@ -104,7 +104,7 @@ const verifyLogin = async (ctx, next) => {
     const user = await UserModel.findOne({ tel: res.user })
     if (user) {
       const date = Date.now()
-      if (date > user.vipEndTime) {
+      if (date > user.vipEndTime && user.vipEndTime != -1) {
         user.vip = false
         await user.save()
       }
