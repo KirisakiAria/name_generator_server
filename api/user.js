@@ -713,7 +713,10 @@ router.post('/pay', verifyAppBaseInfo, verifyUserLogin, async ctx => {
             totalAmount,
             subject: body,
             productCode: 'QUICK_MSECURITY_PAY',
-            // extendParams: { HbFqNum: '3', HbFqSellerPercent: '100' },
+            extendParams: {
+              hbFqNum: '3',
+              hbFqSellerPercent: '0',
+            },
           })
           /** 异步通知地址，商户外网可以post访问的异步地址，用于接收支付宝返回的支付结果，如果未收到该通知可参考该文档进行确认：https://opensupport.alipay.com/support/helpcenter/193/201602475759 **/
           //formData.addField('notifyUrl', 'https://www.baidu.com')
