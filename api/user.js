@@ -713,6 +713,8 @@ router.post('/pay', verifyAppBaseInfo, verifyUserLogin, async ctx => {
             totalAmount,
             subject: body,
             productCode: 'QUICK_MSECURITY_PAY',
+            enablePayChannels:
+              'balance,moneyFund,bankPay,debitCardExpress,creditCard,credit_group,coupon,',
             extendParams: {
               hbFqNum: '3',
               hbFqSellerPercent: '0',
