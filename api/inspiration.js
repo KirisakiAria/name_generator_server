@@ -73,8 +73,8 @@ router.put('/like/:id', verifyAppBaseInfo, verifyUserLogin, async ctx => {
       }
     } else {
       ctx.body = {
-        code: '3008',
-        message: '无此用户信息，请重新登录',
+        code: '3007',
+        message: '登陆状态失效，请重新登录',
       }
     }
   } catch (err) {
