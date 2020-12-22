@@ -6,6 +6,7 @@ const JapaneseWordSchema = new Schema({
   length: Number,
   classify: String,
   showable: Boolean,
+  likedUsers: [String],
 })
 
 const JapaneseWord = mongoose.model('JapaneseWord', JapaneseWordSchema)

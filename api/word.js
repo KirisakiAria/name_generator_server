@@ -18,6 +18,14 @@ const {
   verifyUserLogin,
 } = require('../utils/verify')
 
+const selectModel = type => {
+  if (type == '中国风') {
+    return ChineseWordModel
+  } else {
+    return JapaneseWordModel
+  }
+}
+
 const findRandomWord = async (Model, count, length) => {
   const randomIndex = Math.floor(Math.random() * count)
   let data = await Model.findOne({
@@ -57,13 +65,17 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
         length: Number.parseInt(length),
         showable: true,
       }).skip(randomIndex)
+      const isLiked = data.likedUsers.includes(res.user)
       ctx.body = {
         code: '1000',
         message: '请求成功',
         data: {
+          id: data._id,
           word: data.words[0],
           word2: data.words[1],
           romaji: '',
+          likeCount: data.likedUsers.length,
+          isLiked,
         },
       }
     } else {
@@ -116,13 +128,17 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
       }
       //罗马字
       const romaji = await getRomaji(ifRomaji, type, data.word)
+      const isLiked = data.likedUsers.includes(res.user)
       ctx.body = {
         code: '1000',
         message: '请求成功',
         data: {
+          id: data._id,
           word: data.word,
           word2: '',
           romaji,
+          likeCount: data.likedUsers.length,
+          isLiked,
         },
       }
     }
@@ -338,13 +354,50 @@ const getRomaji = async (ifRomaji, type, word) => {
   }
 }
 
-const selectModel = type => {
-  if (type == '中国风') {
-    return ChineseWordModel
-  } else {
-    return JapaneseWordModel
+router.put('/like/:id', verifyAppBaseInfo, verifyUserLogin, async ctx => {
+  try {
+    const { islike, type } = ctx.request.body
+    const jwt = new JWT(ctx.request.header.authorization)
+    const res = jwt.verifyToken()
+    if (res.user) {
+      let result
+      const Model = selectModel(type)
+      if (islike) {
+        result = await Model.updateOne(
+          { _id: ctx.params.id },
+          { $pull: { likedUsers: res.user } },
+        )
+      } else {
+        result = await Model.updateOne(
+          { _id: ctx.params.id },
+          { $push: { likedUsers: res.user } },
+        )
+      }
+      if (result.ok == 1 && result.nModified == 1) {
+        ctx.body = {
+          code: '1000',
+          message: '点赞成功',
+        }
+      } else {
+        ctx.body = {
+          code: '2000',
+          message: '点赞失败',
+        }
+      }
+    } else {
+      ctx.body = {
+        code: '3008',
+        message: '无此用户信息，请重新登录',
+      }
+    }
+  } catch (err) {
+    console.log(err)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
   }
-}
+})
 
 router.get('/', verifyAdminLogin, async ctx => {
   try {

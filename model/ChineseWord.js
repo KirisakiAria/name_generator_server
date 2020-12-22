@@ -6,6 +6,7 @@ const ChineseWordSchema = new Schema({
   length: Number,
   classify: String,
   showable: Boolean,
+  likedUsers: [String],
 })
 
 const ChineseWord = mongoose.model('ChineseWord', ChineseWordSchema)

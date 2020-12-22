@@ -6,6 +6,7 @@ const coupleSchema = new Schema({
   type: String,
   length: Number,
   showable: Boolean,
+  likedUsers: [String],
 })
 
 const Couple = mongoose.model('Couple', coupleSchema)
