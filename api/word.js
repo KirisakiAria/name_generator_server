@@ -35,15 +35,28 @@ const findRandomWord = async (Model, count, length) => {
   return data
 }
 
+const findRandomCouplesWord = async (count, length) => {
+  const randomIndex = Math.floor(Math.random() * count)
+  let data = await CoupleModel.findOne({
+    length: Number.parseInt(length),
+    showable: true,
+  }).skip(randomIndex)
+  return data
+}
+
 router.post('/random', verifyAppBaseInfo, async ctx => {
   try {
-    const threshold = 50
-    let data
     const { type, length, ifRomaji, couples } = ctx.request.body
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
     //情侣词
     if (couples) {
+      if (length == 1) {
+        return (ctx.body = {
+          code: '9000',
+          message: '暂不支持此长度的网名',
+        })
+      }
       if (res.user) {
         const user = await UserModel.findOne({ tel: res.user })
         if (!user.vip) {
@@ -56,15 +69,26 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
           })
         }
       }
+      const threshold = 30 //防止查词重复（阈值30）
       const count = await CoupleModel.find({
         length: Number.parseInt(length),
         showable: true,
       }).countDocuments()
-      const randomIndex = Math.floor(Math.random() * count)
-      const data = await CoupleModel.findOne({
-        length: Number.parseInt(length),
-        showable: true,
-      }).skip(randomIndex)
+      let data = await findRandomCouplesWord(count, length)
+      while (
+        ctx.session.coupleWords &&
+        ctx.session.coupleWords.flat().includes(data.words[0])
+      ) {
+        data = await findRandomCouplesWord(count, length)
+      }
+      if (ctx.session.coupleWords) {
+        ctx.session.coupleWords.push(data.words)
+      } else {
+        ctx.session.coupleWords = [data.words]
+      }
+      if (ctx.session.coupleWords.length > threshold) {
+        ctx.session.coupleWords.shift()
+      }
       const isLiked = data.likedUsers.includes(res.user)
       ctx.body = {
         code: '1000',
@@ -92,13 +116,13 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
         }
       }
       //非情侣词
+      const threshold = 50 //防止查词重复（阈值50）
       const Model = selectModel(type)
       const count = await Model.find({
         length: Number.parseInt(length),
         showable: true,
       }).countDocuments()
-      data = await findRandomWord(Model, count, length)
-      //防止查词重复（阈值50）
+      let data = await findRandomWord(Model, count, length)
       while (ctx.session.words && ctx.session.words.includes(data.word)) {
         data = await findRandomWord(Model, count, length)
       }
@@ -356,12 +380,16 @@ const getRomaji = async (ifRomaji, type, word) => {
 
 router.put('/like/:id', verifyAppBaseInfo, verifyUserLogin, async ctx => {
   try {
-    const { islike, type } = ctx.request.body
+    const { islike, type, couples } = ctx.request.body
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
     if (res.user) {
-      let result
-      const Model = selectModel(type)
+      let result, Model
+      if (couples) {
+        Model = CoupleModel
+      } else {
+        Model = selectModel(type)
+      }
       if (islike) {
         result = await Model.updateOne(
           { _id: ctx.params.id },
