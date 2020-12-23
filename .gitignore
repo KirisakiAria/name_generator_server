@@ -3,7 +3,7 @@ node_modules
 /dist
 /logs
 /public
-/confog/config.js
+/config/config.js
 
 # local env files
 .env.local
