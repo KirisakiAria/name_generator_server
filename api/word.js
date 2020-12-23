@@ -7,8 +7,9 @@ const he = require('he')
 const Router = require('@koa/router')
 const router = new Router({ prefix: '/word' })
 const JWT = require('../utils/jwt')
-const JapaneseWordModel = require('../model/JapaneseWord')
 const ChineseWordModel = require('../model/ChineseWord')
+const JapaneseWordModel = require('../model/JapaneseWord')
+const CuteWordModel = require('../model/CuteWord')
 const WordDictionary = require('../model/WordDictionary')
 const UserModel = require('../model/User')
 const CoupleModel = require('../model/Couple')
@@ -21,8 +22,10 @@ const {
 const selectModel = type => {
   if (type == '中国风') {
     return ChineseWordModel
-  } else {
+  } else if (type == '日式') {
     return JapaneseWordModel
+  } else {
+    return CuteWordModel
   }
 }
 
