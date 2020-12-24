@@ -29,21 +29,15 @@ const selectModel = type => {
   }
 }
 
-const findRandomWord = async (Model, count, length) => {
+const findRandomWord = async (Model, count, condition) => {
   const randomIndex = Math.floor(Math.random() * count)
-  let data = await Model.findOne({
-    length: Number.parseInt(length),
-    showable: true,
-  }).skip(randomIndex)
+  let data = await Model.findOne(condition).skip(randomIndex)
   return data
 }
 
-const findRandomCouplesWord = async (count, length) => {
+const findRandomCouplesWord = async (count, condition) => {
   const randomIndex = Math.floor(Math.random() * count)
-  let data = await CoupleModel.findOne({
-    length: Number.parseInt(length),
-    showable: true,
-  }).skip(randomIndex)
+  let data = await CoupleModel.findOne(condition).skip(randomIndex)
   return data
 }
 
@@ -52,12 +46,23 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
     const { type, length, ifRomaji, couples } = ctx.request.body
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
+    let condition
+    if (length == '全部') {
+      condition = {
+        showable: true,
+      }
+    } else {
+      condition = {
+        length: Number.parseInt(length),
+        showable: true,
+      }
+    }
     //情侣词
     if (couples) {
       if (length == 1) {
         return (ctx.body = {
           code: '9000',
-          message: '暂不支持此长度的网名',
+          message: '暂不支持此长度的情侣名',
         })
       }
       if (res.user) {
@@ -65,7 +70,7 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
         if (!user.vip) {
           return (ctx.body = {
             code: '3010',
-            message: '此操作只有VIP用户可以使用',
+            message: '情侣模式只有VIP用户可以使用',
             data: {
               word: '彼岸自在',
             },
@@ -73,16 +78,13 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
         }
       }
       const threshold = 30 //防止查词重复（阈值30）
-      const count = await CoupleModel.find({
-        length: Number.parseInt(length),
-        showable: true,
-      }).countDocuments()
-      let data = await findRandomCouplesWord(count, length)
+      const count = await CoupleModel.find(condition).countDocuments()
+      let data = await findRandomCouplesWord(count, condition)
       while (
         ctx.session.coupleWords &&
         ctx.session.coupleWords.flat().includes(data.words[0])
       ) {
-        data = await findRandomCouplesWord(count, length)
+        data = await findRandomCouplesWord(count, condition)
       }
       if (ctx.session.coupleWords) {
         ctx.session.coupleWords.push(data.words)
@@ -108,10 +110,19 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
     } else {
       if (res.user) {
         const user = await UserModel.findOne({ tel: res.user })
+        if (!user.vip && type != '中国风' && type != '日式') {
+          return (ctx.body = {
+            code: '3010',
+            message: '此类型只有VIP用户可以使用',
+            data: {
+              word: '彼岸自在',
+            },
+          })
+        }
         if (!user.vip && parseInt(length) > 5) {
           return (ctx.body = {
             code: '3010',
-            message: '此操作只有VIP用户可以使用',
+            message: '此长度只有VIP用户可以使用',
             data: {
               word: '彼岸自在',
             },
@@ -121,13 +132,10 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
       //非情侣词
       const threshold = 50 //防止查词重复（阈值50）
       const Model = selectModel(type)
-      const count = await Model.find({
-        length: Number.parseInt(length),
-        showable: true,
-      }).countDocuments()
-      let data = await findRandomWord(Model, count, length)
+      const count = await Model.find(condition).countDocuments()
+      let data = await findRandomWord(Model, count, condition)
       while (ctx.session.words && ctx.session.words.includes(data.word)) {
-        data = await findRandomWord(Model, count, length)
+        data = await findRandomWord(Model, count, condition)
       }
       if (ctx.session.words) {
         ctx.session.words.push(data.word)
