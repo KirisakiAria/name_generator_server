@@ -24,7 +24,7 @@ const selectModel = type => {
     return ChineseWordModel
   } else if (type == '日式') {
     return JapaneseWordModel
-  } else {
+  } else if (type == '可爱') {
     return CuteWordModel
   }
 }
@@ -130,7 +130,10 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
         }
       }
       //非情侣词
-      const threshold = 50 //防止查词重复（阈值50）
+      let threshold = 50 //防止查词重复（阈值50）
+      if (type == '可爱') {
+        threshold = 1
+      }
       const Model = selectModel(type)
       const count = await Model.find(condition).countDocuments()
       let data = await findRandomWord(Model, count, condition)
