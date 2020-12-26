@@ -244,6 +244,7 @@ router.post('/search', verifyAppBaseInfo, verifyUserLogin, async ctx => {
         }
       }
       if (!searchType || searchType == 'SearchType.NORMAL') {
+        let list = []
         const conditions = {
           word: pattern,
           showable: true,
@@ -261,7 +262,7 @@ router.post('/search', verifyAppBaseInfo, verifyUserLogin, async ctx => {
         japaneselist = japaneselist.map(e =>
           Object.assign(e.toObject(), { type: '日式' }),
         )
-        const vipList = []
+        let vipList = []
         if (user.vip) {
           let cutelist = await CuteWordModel.find(conditions)
             .skip(10 * parseInt(currentPage))
@@ -269,13 +270,13 @@ router.post('/search', verifyAppBaseInfo, verifyUserLogin, async ctx => {
           cutelist = cutelist.map(e =>
             Object.assign(e.toObject(), { type: '可爱' }),
           )
-          vipList.concat(cutelist)
+          vipList = vipList.concat(cutelist)
         }
         ctx.body = {
           code: '1000',
           message: '请求成功',
           data: {
-            list: chineselist.concat(japaneselist, vipList),
+            list: list.concat(chineselist, japaneselist, vipList),
           },
         }
       } else if (searchType == 'SearchType.COUPLES') {
