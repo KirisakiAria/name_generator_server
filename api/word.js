@@ -237,7 +237,7 @@ router.post('/search', verifyAppBaseInfo, verifyUserLogin, async ctx => {
       if (res.user) {
         const user = await UserModel.findOne({ tel: res.user })
         if (user.vip) {
-          limit = 7
+          limit = 10
         }
       }
       if (!searchType || searchType == 'SearchType.NORMAL') {
