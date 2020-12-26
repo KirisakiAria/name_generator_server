@@ -134,7 +134,6 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
       if (type == '可爱') {
         ctx.session.words = []
       }
-      console.log(ctx.session.words)
       const Model = selectModel(type)
       const count = await Model.find(condition).countDocuments()
       let data = await findRandomWord(Model, count, condition)
