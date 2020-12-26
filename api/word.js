@@ -276,7 +276,7 @@ router.post('/search', verifyAppBaseInfo, verifyUserLogin, async ctx => {
           code: '1000',
           message: '请求成功',
           data: {
-            list: list.concat(chineselist, japaneselist, vipList),
+            list: list.concat(chineselist, vipList, japaneselist),
           },
         }
       } else if (searchType == 'SearchType.COUPLES') {
