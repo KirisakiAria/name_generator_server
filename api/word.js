@@ -260,7 +260,7 @@ router.post('/search', verifyAppBaseInfo, verifyUserLogin, async ctx => {
         )
         const vipList = []
         if (res.user.vip) {
-          let cutelist = await JapaneseWordModel.find(conditions)
+          let cutelist = await CuteWordModel.find(conditions)
             .skip(10 * parseInt(currentPage))
             .limit(10)
           cutelist = cutelist.map(e =>
