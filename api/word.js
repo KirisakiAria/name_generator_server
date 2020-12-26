@@ -234,8 +234,11 @@ router.post('/search', verifyAppBaseInfo, verifyUserLogin, async ctx => {
       let limit = 5
       const jwt = new JWT(ctx.request.header.authorization)
       const res = jwt.verifyToken()
+      let user = {
+        vip: false,
+      }
       if (res.user) {
-        const user = await UserModel.findOne({ tel: res.user })
+        user = await UserModel.findOne({ tel: res.user })
         if (user.vip) {
           limit = 10
         }
@@ -259,7 +262,7 @@ router.post('/search', verifyAppBaseInfo, verifyUserLogin, async ctx => {
           Object.assign(e.toObject(), { type: '日式' }),
         )
         const vipList = []
-        if (res.user.vip) {
+        if (user.vip) {
           let cutelist = await CuteWordModel.find(conditions)
             .skip(10 * parseInt(currentPage))
             .limit(10)
