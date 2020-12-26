@@ -248,22 +248,28 @@ router.post('/search', verifyAppBaseInfo, verifyUserLogin, async ctx => {
           length: { $lte: limit },
         }
         let chineselist = await ChineseWordModel.find(conditions)
-          .skip(15 * parseInt(currentPage))
-          .limit(15)
+          .skip(10 * parseInt(currentPage))
+          .limit(10)
         let japaneselist = await JapaneseWordModel.find(conditions)
-          .skip(15 * parseInt(currentPage))
-          .limit(15)
+          .skip(10 * parseInt(currentPage))
+          .limit(10)
+        let cutelist = await JapaneseWordModel.find(conditions)
+          .skip(10 * parseInt(currentPage))
+          .limit(10)
         chineselist = chineselist.map(e =>
           Object.assign(e.toObject(), { type: '中国风' }),
         )
         japaneselist = japaneselist.map(e =>
           Object.assign(e.toObject(), { type: '日式' }),
         )
+        cutelist = cutelist.map(e =>
+          Object.assign(e.toObject(), { type: '可爱' }),
+        )
         ctx.body = {
           code: '1000',
           message: '请求成功',
           data: {
-            list: chineselist.concat(japaneselist),
+            list: chineselist.concat(japaneselist, cutelist),
           },
         }
       } else if (searchType == 'SearchType.COUPLES') {
