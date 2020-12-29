@@ -88,22 +88,10 @@ router.get('/', verifyAdminLogin, async ctx => {
 
 router.post('/', verifyAdminLogin, async ctx => {
   try {
-    const {
-      orderNo,
-      body,
-      tel,
-      price,
-      paymentMethod,
-      status,
-    } = ctx.request.body
+    const body = ctx.request.body
     const data = new OrderModel({
-      orderNo,
-      body,
-      tel,
-      price,
+      ...body,
       time: Date.now(),
-      paymentMethod,
-      status,
     })
     await data.save()
     ctx.body = {

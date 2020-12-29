@@ -36,10 +36,9 @@ router.get('/', async ctx => {
 
 router.post('/', verifyAdminLogin, async ctx => {
   try {
-    const { title, content } = ctx.request.body
+    const body = ctx.request.body
     const data = new NotificationModel({
-      title,
-      content,
+      ...body,
       date: moment().format('YYYY-MM-DD HH:mm:ss'),
     })
     await data.save()

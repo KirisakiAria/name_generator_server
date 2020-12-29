@@ -3,6 +3,7 @@ const Schema = mongoose.Schema
 
 const planSchema = new Schema({
   planId: String,
+  huaweiPlanId: String,
   title: String,
   currentPrice: String,
   originalPrice: String,

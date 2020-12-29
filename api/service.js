@@ -169,12 +169,9 @@ router.get('/feedback', verifyAdminLogin, async ctx => {
 
 router.post('/feedback', async ctx => {
   try {
-    const { tel, username, email, content } = ctx.request.body
+    const body = ctx.request.body
     const data = new FeedbackModel({
-      tel,
-      username,
-      email,
-      content,
+      ...body,
       date: moment().format('YYYY-MM-DD HH:mm:ss'),
     })
     await data.save()
@@ -193,11 +190,9 @@ router.post('/feedback', async ctx => {
 
 router.post('/feedback', async ctx => {
   try {
-    const { uid, tel, content } = ctx.request.body
+    const body = ctx.request.body
     const data = new FeedbackModel({
-      uid,
-      tel,
-      content,
+      ...body,
       date: moment().format('YYYY-MM-DD HH:mm:ss'),
     })
     await data.save()
