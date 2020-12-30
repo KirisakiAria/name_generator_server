@@ -676,6 +676,9 @@ router.post('/pay', verifyAppBaseInfo, verifyUserLogin, async ctx => {
           console.log(err.stack)
         })
         const plan = await PlanModel.findOne({ planId })
+        const outTradeNo = Date.now() + tel + Math.round(Math.random() * 10000)
+        const body = `「彼岸自在」VIP会员 期限：${plan.title}`
+        const totalAmount = parseFloat(plan.currentPrice).toFixed(2).toString()
         if (paymentMethod == '1') {
           const alipaySdk = new AlipaySdk.default({
             appId: config.alipayAppId,
@@ -698,12 +701,6 @@ router.post('/pay', verifyAppBaseInfo, verifyUserLogin, async ctx => {
               '../pay/crt/alipayCertPublicKey_RSA2.crt',
             ),
           })
-          const outTradeNo =
-            Date.now() + tel + Math.round(Math.random() * 10000)
-          const body = `「彼岸自在」VIP会员 期限：${plan.title}`
-          const totalAmount = parseFloat(plan.currentPrice)
-            .toFixed(2)
-            .toString()
           const formData = new AliPayForm.default()
           /** 调用 setMethod 并传入 get，会返回可以跳转到支付页面的 url **/
           formData.setMethod('get')
@@ -741,6 +738,22 @@ router.post('/pay', verifyAppBaseInfo, verifyUserLogin, async ctx => {
             code: '1000',
             message: '请求成功',
             data: result.replace('https://openapi.alipay.com/gateway.do?', ''),
+          }
+        } else if (paymentMethod == '3') {
+          const order = new OrderModel({
+            orderNo: outTradeNo,
+            body,
+            tel,
+            price: totalAmount,
+            time: Date.now(),
+            paymentMethod,
+            status: false,
+          })
+          await order.save()
+          ctx.body = {
+            code: '1000',
+            message: '请求成功',
+            orderNo: outTradeNo,
           }
         }
       } else {
