@@ -856,4 +856,82 @@ router.post('/pay/success', verifyAppBaseInfo, verifyUserLogin, async ctx => {
   }
 })
 
+router.post(
+  '/pay/success/huawei',
+  verifyAppBaseInfo,
+  verifyUserLogin,
+  async ctx => {
+    try {
+      const clientIp = ctx.req.connection.remoteAddress
+      const { tel, orderNo, planId, expirationDate } = ctx.request.body
+      const jwt = new JWT(ctx.request.header.authorization)
+      const res = jwt.verifyToken()
+      if (res.user === tel) {
+        const user = await UserModel.findOne({ tel })
+        if (user) {
+          const writerStream = fs.createWriteStream(
+            process.cwd() + '/logs/order.log',
+            {
+              flags: 'a',
+            },
+          )
+          let plan
+          user.vip = true
+          user.vipStartTime = Date.now()
+          user.vipEndTime =
+            expirationDate == '永久' ? -1 : parseInt(expirationDate)
+          switch (planId) {
+            case '1':
+              plan = '一个月'
+              break
+            case '2':
+              plan = '三个月'
+              break
+            case '3':
+              plan = '半年'
+              break
+            case '4':
+              plan = '一年'
+              break
+            case '5':
+              plan = '永久'
+              break
+          }
+          await user.save()
+          const order = await OrderModel.findOne({ orderNo })
+          order.status = true
+          await order.save()
+          writerStream.write(
+            `用户：${tel} IP：${clientIp} 在${moment().format(
+              'YYYY-MM-DD HH:mm:ss',
+            )} 购买${plan}会员\n (华为)`,
+            'UTF8',
+          )
+          writerStream.end()
+          ctx.body = {
+            code: '1000',
+            message: '支付成功',
+          }
+        } else {
+          ctx.body = {
+            code: '3008',
+            message: '无此用户信息，请重新登录',
+          }
+        }
+      } else {
+        ctx.body = {
+          code: '3007',
+          message: '登录状态失效，请重新登录',
+        }
+      }
+    } catch (err) {
+      console.log(err)
+      ctx.body = {
+        code: '9000',
+        message: '请求错误',
+      }
+    }
+  },
+)
+
 module.exports = router
