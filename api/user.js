@@ -38,16 +38,6 @@ const filterEndTime = value => {
 
 router.post('/login', verifyAppBaseInfo, async ctx => {
   try {
-    const writerStream = fs.createWriteStream(
-      process.cwd() + '/logs/login.log',
-      {
-        flags: 'a',
-      },
-    )
-    writerStream.on('error', err => {
-      console.log(err.stack)
-    })
-    const clientIp = ctx.req.connection.remoteAddress
     const { tel, password } = ctx.request.body
     const user = await UserModel.findOne({ tel })
     if (user && user.password === encrypt(password)) {
@@ -56,13 +46,6 @@ router.post('/login', verifyAppBaseInfo, async ctx => {
         role: 2,
       })
       const token = jwt.generateToken()
-      writerStream.write(
-        `用户：${tel} IP：${clientIp} 在${moment().format(
-          'YYYY-MM-DD HH:mm:ss',
-        )} 登录\n`,
-        'UTF8',
-      )
-      writerStream.end()
       user.lastLoginTime = moment().format('YYYY-MM-DD HH:mm:ss')
       await user.save()
       ctx.body = {
@@ -97,17 +80,6 @@ router.post('/login', verifyAppBaseInfo, async ctx => {
 
 router.post('/register', verifyAppBaseInfo, async ctx => {
   try {
-    const writerStream = fs.createWriteStream(
-      process.cwd() + '/logs/register.log',
-      {
-        flags: 'a',
-      },
-    )
-
-    writerStream.on('error', err => {
-      console.log(err.stack)
-    })
-    const clientIp = ctx.req.connection.remoteAddress
     const { tel, password, authCode } = ctx.request.body
     const userDoc = await UserModel.findOne({ tel })
     if (userDoc) {
@@ -141,13 +113,6 @@ router.post('/register', verifyAppBaseInfo, async ctx => {
           vip: false,
         })
         await newUser.save()
-        writerStream.write(
-          `用户：${tel} IP：${clientIp} 在${moment().format(
-            'YYYY-MM-DD HH:mm:ss',
-          )} 注册\n`,
-          'UTF8',
-        )
-        writerStream.end()
         ctx.body = {
           code: '1000',
           message: '注册成功',
@@ -666,15 +631,6 @@ router.post('/pay', verifyAppBaseInfo, verifyUserLogin, async ctx => {
     if (res.user === tel) {
       const user = await UserModel.findOne({ tel })
       if (user) {
-        const writerStream = fs.createWriteStream(
-          process.cwd() + '/logs/order.log',
-          {
-            flags: 'a',
-          },
-        )
-        writerStream.on('error', err => {
-          console.log(err.stack)
-        })
         const plan = await PlanModel.findOne({ planId })
         const outTradeNo = Date.now() + tel + Math.round(Math.random() * 10000)
         const body = `「彼岸自在」VIP会员 期限：${plan.title}`
@@ -779,20 +735,12 @@ router.post('/pay', verifyAppBaseInfo, verifyUserLogin, async ctx => {
 
 router.post('/pay/success', verifyAppBaseInfo, verifyUserLogin, async ctx => {
   try {
-    const clientIp = ctx.req.connection.remoteAddress
     const { tel, orderNo, planId } = ctx.request.body
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
     if (res.user === tel) {
       const user = await UserModel.findOne({ tel })
       if (user) {
-        const writerStream = fs.createWriteStream(
-          process.cwd() + '/logs/order.log',
-          {
-            flags: 'a',
-          },
-        )
-        let plan
         user.vip = true
         user.vipStartTime = Date.now()
         const vipStartTime = user.vipEndTime
@@ -801,36 +749,24 @@ router.post('/pay/success', verifyAppBaseInfo, verifyUserLogin, async ctx => {
         switch (planId) {
           case '1':
             user.vipEndTime = vipStartTime + 2678400000
-            plan = '一个月'
             break
           case '2':
             user.vipEndTime = vipStartTime + 8035200000
-            plan = '三个月'
             break
           case '3':
             user.vipEndTime = vipStartTime + 16070400000
-            plan = '半年'
             break
           case '4':
             user.vipEndTime = vipStartTime + 31536000000
-            plan = '一年'
             break
           case '5':
             user.vipEndTime = -1
-            plan = '永久'
             break
         }
         await user.save()
         const order = await OrderModel.findOne({ orderNo })
         order.status = true
         await order.save()
-        writerStream.write(
-          `用户：${tel} IP：${clientIp} 在${moment().format(
-            'YYYY-MM-DD HH:mm:ss',
-          )} 购买${plan}会员\n`,
-          'UTF8',
-        )
-        writerStream.end()
         ctx.body = {
           code: '1000',
           message: '支付成功',
@@ -862,52 +798,21 @@ router.post(
   verifyUserLogin,
   async ctx => {
     try {
-      const clientIp = ctx.req.connection.remoteAddress
-      const { tel, orderNo, planId, expirationDate } = ctx.request.body
+      const { tel, orderNo, token, expirationDate } = ctx.request.body
       const jwt = new JWT(ctx.request.header.authorization)
       const res = jwt.verifyToken()
       if (res.user === tel) {
         const user = await UserModel.findOne({ tel })
         if (user) {
-          const writerStream = fs.createWriteStream(
-            process.cwd() + '/logs/order.log',
-            {
-              flags: 'a',
-            },
-          )
-          let plan
           user.vip = true
+          user.huaweiPayToken = token
           user.vipStartTime = Date.now()
-          user.vipEndTime =
-            expirationDate == '永久' ? -1 : parseInt(expirationDate)
-          switch (planId) {
-            case '1':
-              plan = '一个月'
-              break
-            case '2':
-              plan = '三个月'
-              break
-            case '3':
-              plan = '半年'
-              break
-            case '4':
-              plan = '一年'
-              break
-            case '5':
-              plan = '永久'
-              break
-          }
+          user.vipEndTime = expirationDate
           await user.save()
           const order = await OrderModel.findOne({ orderNo })
           order.status = true
+          order.huaweiPayToken = token
           await order.save()
-          writerStream.write(
-            `用户：${tel} IP：${clientIp} 在${moment().format(
-              'YYYY-MM-DD HH:mm:ss',
-            )} 购买${plan}会员\n (华为)`,
-            'UTF8',
-          )
-          writerStream.end()
           ctx.body = {
             code: '1000',
             message: '支付成功',
@@ -933,5 +838,87 @@ router.post(
     }
   },
 )
+
+router.post('/verifyvip', verifyAppBaseInfo, verifyUserLogin, async ctx => {
+  try {
+    const { tel, expirationDate, token } = ctx.request.body
+    const jwt = new JWT(ctx.request.header.authorization)
+    const res = jwt.verifyToken()
+    if (res.user === tel) {
+      const user = await UserModel.findOne({ tel })
+      if (user) {
+        const order = await OrderModel.find({ tel }).sort({ _id: -1 }).limit(1)
+        if (token) {
+          user.huaweiPayToken = token
+          if (order.length) {
+            order[0].huaweiPayToken = token
+          }
+        }
+        if (order.length) {
+          order[0].status = true
+          await order[0].save()
+        }
+        user.vipEndTime = expirationDate
+        const date = Date.now()
+        if (user.vipEndTime == -1) {
+          user.vip = true
+        } else if (date < expirationDate) {
+          user.vip = true
+        } else {
+          user.vip = false
+        }
+        await user.save()
+        ctx.body = {
+          code: '1000',
+          message: '验证成功',
+          data: {
+            vip: user.vip,
+            vipEndTime: filterEndTime(user.vipEndTime),
+          },
+        }
+      } else {
+        ctx.body = {
+          code: '3008',
+          message: '无此用户信息，请重新登录',
+        }
+      }
+    } else {
+      ctx.body = {
+        code: '3007',
+        message: '登录状态失效，请重新登录',
+      }
+    }
+  } catch (err) {
+    console.log(err)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
+router.post('/refund', verifyAdminLogin, async ctx => {
+  try {
+    const { tel } = ctx.request.body
+    const user = await UserModel.findOne({ tel })
+    if (user) {
+      ctx.body = {
+        code: '1000',
+        message: '发起退款成功',
+      }
+    } else {
+      ctx.body = {
+        code: '3008',
+        message: '暂无此用户信息',
+      }
+    }
+  } catch (err) {
+    console.log(err)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
 
 module.exports = router

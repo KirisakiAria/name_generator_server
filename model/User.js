@@ -12,6 +12,7 @@ const userSchema = new Schema({
   vipEndTime: Number,
   vip: Boolean,
   lastLoginTime: String,
+  huaweiPayToken: String, //华为的支付token，用来获取支付信息，只有华为支付才会生成此字段
   history: [],
   favourites: [],
 })

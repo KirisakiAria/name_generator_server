@@ -9,6 +9,7 @@ const orderSchema = new Schema({
   time: Number, //创建时间
   paymentMethod: String, //1支付宝 2微信
   status: Boolean, //支付状态
+  huaweiPayToken: String, //华为的支付token，用来获取支付信息，只有华为支付才会生成此字段
 })
 
 const Order = mongoose.model('Order', orderSchema)
