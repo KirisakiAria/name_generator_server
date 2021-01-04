@@ -295,18 +295,18 @@ router.get('/favourite', verifyAppBaseInfo, verifyUserLogin, async ctx => {
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
     if (res.user) {
-      const { page } = ctx.request.query
+      const { page, type } = ctx.request.query
       const user = await UserModel.findOne({ tel: res.user })
-      if (user?.vip) {
-        ctx.body = {
-          code: '1000',
-          message: '请求成功',
-          data: {
-            list: user.favourites.slice(page * 15, page * 15 + 15),
-          },
+      if (user) {
+        let list
+        if (type == 'couples') {
+          list = user.favouritesCouples
+        } else {
+          list = user.favourites
         }
-      } else if (!user?.vip) {
-        const list = user.favourites.slice(0, 30)
+        if (!user.vip) {
+          list = list.slice(0, 30)
+        }
         ctx.body = {
           code: '1000',
           message: '请求成功',
@@ -337,29 +337,55 @@ router.get('/favourite', verifyAppBaseInfo, verifyUserLogin, async ctx => {
 
 router.post('/favourite', verifyAppBaseInfo, verifyUserLogin, async ctx => {
   try {
-    const { type, length, word } = ctx.request.body
+    const { type, length, word, word2 } = ctx.request.body
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
     if (res.user) {
       const user = await UserModel.findOne({ tel: res.user })
-      if (user.favourites.length >= 500) {
-        ctx.body = {
-          code: '2003',
-          message: '收藏网名数量已满',
+      //有第二个词语传入说明是情侣词语
+      if (word2) {
+        if (user.favouritesCouples.length >= 500) {
+          ctx.body = {
+            code: '2003',
+            message: '收藏情侣网名数量已满',
+          }
+        } else {
+          const index = user.favouritesCouples.findIndex(
+            e => e.words[0] === word,
+          )
+          if (index == -1) {
+            user.favouritesCouples.unshift({
+              type: '中国风',
+              length,
+              words: [word, word2],
+            })
+          }
+          user.save()
+          ctx.body = {
+            code: '1000',
+            message: '请求成功',
+          }
         }
       } else {
-        const index = user.favourites.findIndex(e => e.word === word)
-        if (index == -1) {
-          user.favourites.unshift({
-            type,
-            length,
-            word,
-          })
-        }
-        user.save()
-        ctx.body = {
-          code: '1000',
-          message: '请求成功',
+        if (user.favourites.length >= 500) {
+          ctx.body = {
+            code: '2003',
+            message: '收藏网名数量已满',
+          }
+        } else {
+          const index = user.favourites.findIndex(e => e.word === word)
+          if (index == -1) {
+            user.favourites.unshift({
+              type,
+              length,
+              word,
+            })
+          }
+          user.save()
+          ctx.body = {
+            code: '1000',
+            message: '请求成功',
+          }
         }
       }
     } else {
@@ -384,18 +410,33 @@ router.delete(
   async ctx => {
     try {
       const { word } = ctx.params
+      const { couples } = ctx.query
       const jwt = new JWT(ctx.request.header.authorization)
       const res = jwt.verifyToken()
       if (res.user) {
         const user = await UserModel.findOne({ tel: res.user })
-        const index = user.favourites.findIndex(e => e.word === word)
-        if (index != -1) {
-          user.favourites.splice(index, 1)
-        }
-        user.save()
-        ctx.body = {
-          code: '1000',
-          message: '请求成功',
+        if (couples) {
+          const index = user.favouritesCouples.findIndex(
+            e => e.words[0] === word,
+          )
+          if (index != -1) {
+            user.favouritesCouples.splice(index, 1)
+          }
+          user.save()
+          ctx.body = {
+            code: '1000',
+            message: '请求成功',
+          }
+        } else {
+          const index = user.favourites.findIndex(e => e.word === word)
+          if (index != -1) {
+            user.favourites.splice(index, 1)
+          }
+          user.save()
+          ctx.body = {
+            code: '1000',
+            message: '请求成功',
+          }
         }
       } else {
         ctx.body = {

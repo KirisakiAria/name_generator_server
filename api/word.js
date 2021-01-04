@@ -94,6 +94,22 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
       if (ctx.session.coupleWords.length > threshold) {
         ctx.session.coupleWords.shift()
       }
+      if (res.user) {
+        const user = await UserModel.findOne({ tel: res.user })
+        if (user) {
+          user.historyCouples.unshift({
+            type: '中国风',
+            length,
+            words: data.words,
+          })
+          if (user.historyCouples.length > 500) {
+            for (let i = user.historyCouples.length - 500; i > 0; i--) {
+              user.historyCouples.pop()
+            }
+          }
+          user.save()
+        }
+      }
       const isLiked = data.likedUsers.includes(res.user)
       ctx.body = {
         code: '1000',
@@ -154,7 +170,7 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
       if (ctx.session.words.length > threshold) {
         ctx.session.words.shift()
       }
-      if (res.user && data) {
+      if (res.user) {
         const user = await UserModel.findOne({ tel: res.user })
         if (user) {
           user.history.unshift({

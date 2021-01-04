@@ -13,8 +13,10 @@ const userSchema = new Schema({
   vip: Boolean,
   lastLoginTime: String,
   huaweiPayToken: String, //华为的支付token，用来获取支付信息，只有华为支付才会生成此字段
-  history: [],
-  favourites: [],
+  history: Array,
+  favourites: Array,
+  historyCouples: Array,
+  favouritesCouples: Array,
 })
 
 const User = mongoose.model('User', userSchema)
