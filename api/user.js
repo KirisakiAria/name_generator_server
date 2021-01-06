@@ -250,18 +250,18 @@ router.get('/history', verifyAppBaseInfo, verifyUserLogin, async ctx => {
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
     if (res.user) {
-      const { page } = ctx.request.query
+      const { page, type } = ctx.request.query
       const user = await UserModel.findOne({ tel: res.user })
-      if (user?.vip) {
-        ctx.body = {
-          code: '1000',
-          message: '请求成功',
-          data: {
-            list: user.history.slice(page * 15, page * 15 + 15),
-          },
+      if (user) {
+        let list
+        if (type == 'couples') {
+          list = user.historyCouples
+        } else {
+          list = user.history
         }
-      } else if (!user?.vip) {
-        const list = user.history.slice(0, 30)
+        if (!user.vip) {
+          list = list.slice(0, 30)
+        }
         ctx.body = {
           code: '1000',
           message: '请求成功',

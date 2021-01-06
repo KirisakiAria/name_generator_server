@@ -135,7 +135,7 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
             },
           })
         }
-        if (!user.vip && parseInt(length) > 5) {
+        if (!user.vip && parseInt(length) > 4) {
           return (ctx.body = {
             code: '3010',
             message: '此长度只有VIP用户可以使用',
