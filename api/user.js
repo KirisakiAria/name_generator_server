@@ -111,6 +111,10 @@ router.post('/register', verifyAppBaseInfo, async ctx => {
           vipStartTime: 0,
           vipEndTime: 0,
           vip: false,
+          favourites: [],
+          favouritesCouples: [],
+          history: [],
+          historyCouples: [],
         })
         await newUser.save()
         ctx.body = {
@@ -583,6 +587,10 @@ router.post('/', verifyAdminLogin, async ctx => {
         vipStartTime,
         vipEndTime,
         date: moment().format('YYYY-MM-DD'),
+        favourites: [],
+        favouritesCouples: [],
+        history: [],
+        historyCouples: [],
       })
       await newUser.save()
       ctx.body = {
