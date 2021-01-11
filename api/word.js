@@ -247,7 +247,7 @@ router.post('/search', verifyAppBaseInfo, verifyUserLogin, async ctx => {
       }
     } else {
       const pattern = new RegExp(searchContent, 'i')
-      let limit = 5
+      let limit = 4
       const jwt = new JWT(ctx.request.header.authorization)
       const res = jwt.verifyToken()
       let user = {
