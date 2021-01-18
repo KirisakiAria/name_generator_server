@@ -15,6 +15,7 @@ const data_dictionary = require('./data_dictionary')
 const system = require('./system')
 const plan = require('./plan')
 const order = require('./order')
+const key = require('./key')
 
 const api = new Router({ prefix: `/api/${config.apiVersion}` })
 
@@ -34,5 +35,6 @@ api.use(data_dictionary.routes()).use(data_dictionary.allowedMethods())
 api.use(system.routes()).use(system.allowedMethods())
 api.use(plan.routes()).use(plan.allowedMethods())
 api.use(order.routes()).use(order.allowedMethods())
+api.use(key.routes()).use(key.allowedMethods())
 
 module.exports = api

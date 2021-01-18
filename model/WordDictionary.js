@@ -10,6 +10,7 @@ const WordDictionarySchema = new Schema({
   radicals: String,
   strokes: Number,
   more: String,
+  type: String,
 })
 
 const WordDictionary = mongoose.model('WordDictionary', WordDictionarySchema)

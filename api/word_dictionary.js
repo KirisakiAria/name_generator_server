@@ -11,6 +11,7 @@ router.get('/', verifyAdminLogin, async ctx => {
       word,
       explanation,
       length,
+      type,
       pageSize,
       currentPage,
     } = ctx.request.query
@@ -19,6 +20,7 @@ router.get('/', verifyAdminLogin, async ctx => {
     const condition = {
       word: wordPattern,
       length,
+      type,
       explanation: explanationPattern,
     }
     const list = await WordDictionaryModel.find(condition)
@@ -53,6 +55,7 @@ router.post('/', verifyAdminLogin, async ctx => {
       radicals,
       strokes,
       more,
+      type,
     } = ctx.request.body
     const data = new WordDictionaryModel({
       word,
@@ -63,6 +66,7 @@ router.post('/', verifyAdminLogin, async ctx => {
       radicals,
       strokes,
       more,
+      type,
     })
     await data.save()
     ctx.body = {
