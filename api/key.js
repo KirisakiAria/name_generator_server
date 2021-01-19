@@ -13,17 +13,17 @@ const router = new Router({ prefix: '/key' })
 
 router.post('/activate', verifyAppBaseInfo, verifyUserLogin, async ctx => {
   try {
-    const { code, tel } = ctx.request.query
+    const { code, tel } = ctx.request.body
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
     if (res.user === tel) {
       const user = await UserModel.findOne({ tel })
       if (user) {
-        const key = await UserModel.findOne({ code })
+        const key = await KeyModel.findOne({ code })
         if (key && !key.activated) {
           key.userTel = tel
           key.activated = true
-          key.activationTime = moment().format('YYYY-MM-DD HH:mm:ss')
+          key.activatedTime = moment().format('YYYY-MM-DD HH:mm:ss')
           await key.save()
           user.vip = true
           user.vipStartTime = Date.now()
@@ -54,7 +54,7 @@ router.post('/activate', verifyAppBaseInfo, verifyUserLogin, async ctx => {
           }
         } else {
           ctx.body = {
-            code: '1000',
+            code: '4000',
             message: '激活码无效或已使用',
           }
         }

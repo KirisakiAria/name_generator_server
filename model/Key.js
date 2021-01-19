@@ -7,7 +7,7 @@ const keySchema = new Schema({
   activated: Boolean,
   userTel: String,
   createTime: String,
-  activationTime: String,
+  activatedTime: String,
 })
 
 const Key = mongoose.model('Key', keySchema)
