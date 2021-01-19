@@ -20,14 +20,54 @@ router.post('/activate', verifyAppBaseInfo, verifyUserLogin, async ctx => {
       const user = await UserModel.findOne({ tel })
       if (user) {
         const key = await UserModel.findOne({ code })
-        key.userTel = tel
-        key.activated = true
-        key.activationTime = moment().format('YYYY-MM-DD HH:mm:ss')
-        await key.save()
-        ctx.body = {
-          code: '1000',
-          message: '激活成功',
+        if (key && !key.activated) {
+          key.userTel = tel
+          key.activated = true
+          key.activationTime = moment().format('YYYY-MM-DD HH:mm:ss')
+          await key.save()
+          user.vip = true
+          user.vipStartTime = Date.now()
+          const vipStartTime = user.vipEndTime
+            ? user.vipEndTime
+            : user.vipStartTime
+          switch (key.planId) {
+            case '1':
+              user.vipEndTime = vipStartTime + 2678400000
+              break
+            case '2':
+              user.vipEndTime = vipStartTime + 8035200000
+              break
+            case '3':
+              user.vipEndTime = vipStartTime + 16070400000
+              break
+            case '4':
+              user.vipEndTime = vipStartTime + 31536000000
+              break
+            case '5':
+              user.vipEndTime = -1
+              break
+          }
+          await user.save()
+          ctx.body = {
+            code: '1000',
+            message: '激活成功',
+          }
+        } else {
+          ctx.body = {
+            code: '1000',
+            message: '激活码无效或已使用',
+          }
         }
+      } else {
+        ctx.body = {
+          code: '3008',
+          message: '无此用户信息，请重新登录',
+        }
+      }
+    } else {
+      ctx.body = {
+        code: '3007',
+        message: '登录状态失效，请重新登录',
       }
     }
   } catch (err) {
@@ -90,7 +130,6 @@ router.post('/', verifyAdminLogin, async ctx => {
       createTime: moment().format('YYYY-MM-DD HH:mm:ss'),
       activatedTime: '',
     })
-    console.log(moment().format('YYYY-MM-DD HH:mm:ss'))
     await data.save()
     ctx.body = {
       code: '1000',
