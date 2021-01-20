@@ -109,6 +109,23 @@ router.get('/vip', async ctx => {
   }
 })
 
+router.get('/key', async ctx => {
+  try {
+    const data = await ServiceModel.find()
+    ctx.body = {
+      code: '1000',
+      message: '请求成功',
+      data: data[0].key,
+    }
+  } catch (err) {
+    console.log(err)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
 router.put('/:id', verifyAdminLogin, async ctx => {
   try {
     const body = ctx.request.body
