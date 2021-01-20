@@ -30,27 +30,33 @@ router.post('/activate', verifyAppBaseInfo, verifyUserLogin, async ctx => {
           const vipStartTime = user.vipEndTime
             ? user.vipEndTime
             : user.vipStartTime
+          let term
           switch (key.planId) {
             case '1':
               user.vipEndTime = vipStartTime + 2678400000
+              term = '一个月'
               break
             case '2':
               user.vipEndTime = vipStartTime + 8035200000
+              term = '三个月'
               break
             case '3':
               user.vipEndTime = vipStartTime + 16070400000
+              term = '半年'
               break
             case '4':
               user.vipEndTime = vipStartTime + 31536000000
+              term = '一年'
               break
             case '5':
               user.vipEndTime = -1
+              term = '永久'
               break
           }
           await user.save()
           ctx.body = {
             code: '1000',
-            message: '激活成功',
+            message: `您已成功激活彼岸自在${term}VIP会员`,
           }
         } else {
           ctx.body = {
