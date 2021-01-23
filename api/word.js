@@ -123,19 +123,20 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
           isLiked,
         },
       }
+      //非情侣
     } else {
       if (res.user) {
         const user = await UserModel.findOne({ tel: res.user })
-        if (!user.vip && type != '中国风' && type != '日式') {
-          return (ctx.body = {
-            code: '3010',
-            message: '此类型只有VIP用户可以使用',
-            data: {
-              word: '彼岸自在',
-            },
-          })
-        }
-        if (!user.vip && parseInt(length) > 4) {
+        // if (!user.vip && type != '中国风' && type != '日式') {
+        //   return (ctx.body = {
+        //     code: '3010',
+        //     message: '此类型只有VIP用户可以使用',
+        //     data: {
+        //       word: '彼岸自在',
+        //     },
+        //   })
+        // }
+        if (!user.vip && parseInt(length) > 5) {
           return (ctx.body = {
             code: '3010',
             message: '此长度只有VIP用户可以使用',
@@ -145,11 +146,10 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
           })
         }
       }
-      //非情侣词
       let threshold = 50 //防止查词重复（阈值50）
-      if (type == '可爱') {
-        ctx.session.words = []
-      }
+      // if (type == '可爱') {
+      //   ctx.session.words = []
+      // }
       const Model = selectModel(type)
       const count = await Model.find(condition).countDocuments()
       let data = await findRandomWord(Model, count, condition)
@@ -173,6 +173,9 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
       if (res.user) {
         const user = await UserModel.findOne({ tel: res.user })
         if (user) {
+          if (!user.history) {
+            user.history = []
+          }
           user.history.unshift({
             type,
             length,
