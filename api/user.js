@@ -408,6 +408,55 @@ router.post('/favourite', verifyAppBaseInfo, verifyUserLogin, async ctx => {
 })
 
 router.delete(
+  '/history/:word',
+  verifyAppBaseInfo,
+  verifyUserLogin,
+  async ctx => {
+    try {
+      const { word } = ctx.params
+      const { couples } = ctx.query
+      const jwt = new JWT(ctx.request.header.authorization)
+      const res = jwt.verifyToken()
+      if (res.user) {
+        const user = await UserModel.findOne({ tel: res.user })
+        if (couples) {
+          const index = user.historyCouples.findIndex(e => e.words[0] === word)
+          if (index != -1) {
+            user.historyCouples.splice(index, 1)
+          }
+          user.save()
+          ctx.body = {
+            code: '1000',
+            message: '请求成功',
+          }
+        } else {
+          const index = user.history.findIndex(e => e.word === word)
+          if (index != -1) {
+            user.history.splice(index, 1)
+          }
+          user.save()
+          ctx.body = {
+            code: '1000',
+            message: '请求成功',
+          }
+        }
+      } else {
+        ctx.body = {
+          code: '3008',
+          message: '无此用户信息，请重新登录',
+        }
+      }
+    } catch (err) {
+      console.log(err)
+      ctx.body = {
+        code: '9000',
+        message: '请求错误',
+      }
+    }
+  },
+)
+
+router.delete(
   '/favourite/:word',
   verifyAppBaseInfo,
   verifyUserLogin,
