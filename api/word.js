@@ -250,7 +250,7 @@ router.post('/search', verifyAppBaseInfo, verifyUserLogin, async ctx => {
       }
     } else {
       const pattern = new RegExp(searchContent, 'i')
-      let limit = 4
+      let limit = 5
       const jwt = new JWT(ctx.request.header.authorization)
       const res = jwt.verifyToken()
       let user = {
@@ -275,30 +275,45 @@ router.post('/search', verifyAppBaseInfo, verifyUserLogin, async ctx => {
         let japaneselist = await JapaneseWordModel.find(conditions)
           .skip(10 * parseInt(currentPage))
           .limit(10)
+        let cutelist = await CuteWordModel.find(conditions)
+          .skip(10 * parseInt(currentPage))
+          .limit(10)
         chineselist = chineselist.map(e =>
           Object.assign(e.toObject(), { type: '中国风' }),
         )
         japaneselist = japaneselist.map(e =>
           Object.assign(e.toObject(), { type: '日式' }),
         )
-        let vipList = []
-        if (user.vip) {
-          let cutelist = await CuteWordModel.find(conditions)
-            .skip(10 * parseInt(currentPage))
-            .limit(10)
-          cutelist = cutelist.map(e =>
-            Object.assign(e.toObject(), { type: '可爱' }),
-          )
-          vipList = vipList.concat(cutelist)
-        }
+        cutelist = cutelist.map(e =>
+          Object.assign(e.toObject(), { type: '可爱' }),
+        )
+        // let vipList = []
+        // if (user.vip) {
+        //   let cutelist = await CuteWordModel.find(conditions)
+        //     .skip(10 * parseInt(currentPage))
+        //     .limit(10)
+        //   cutelist = cutelist.map(e =>
+        //     Object.assign(e.toObject(), { type: '可爱' }),
+        //   )
+        //   vipList = vipList.concat(cutelist)
+        // }
         ctx.body = {
           code: '1000',
           message: '请求成功',
           data: {
-            list: list.concat(chineselist, vipList, japaneselist),
+            list: list.concat(chineselist, japaneselist, cutelist),
           },
         }
       } else if (searchType == 'SearchType.COUPLES') {
+        if (!user.vip) {
+          return (ctx.body = {
+            code: '3010',
+            message: '情侣模式只有VIP用户可以使用',
+            data: {
+              word: '彼岸自在',
+            },
+          })
+        }
         const conditions = {
           words: { $all: [pattern] },
           showable: true,
@@ -315,6 +330,15 @@ router.post('/search', verifyAppBaseInfo, verifyUserLogin, async ctx => {
           },
         }
       } else if (searchType == 'SearchType.GENERATE') {
+        if (!user.vip) {
+          return (ctx.body = {
+            code: '3010',
+            message: '生成情侣名只有VIP用户可以使用',
+            data: {
+              word: '彼岸自在',
+            },
+          })
+        }
         if (parseInt(currentPage) > 0) {
           return (ctx.body = {
             code: '1000',
@@ -377,7 +401,7 @@ router.post('/search', verifyAppBaseInfo, verifyUserLogin, async ctx => {
     console.log(err)
     ctx.body = {
       code: '9000',
-      message: '请求错误',
+      message: '没有搜索出您想要的结果，请换个词试试',
     }
   }
 })
