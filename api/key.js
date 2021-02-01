@@ -131,6 +131,13 @@ router.get('/', verifyAdminLogin, async ctx => {
 router.post('/', verifyAdminLogin, async ctx => {
   try {
     const body = ctx.request.body
+    const key = await KeyModel.findOne({ code: body.code })
+    if (key) {
+      return (ctx.body = {
+        code: '4001',
+        message: '激活码已经存在',
+      })
+    }
     const data = new KeyModel({
       ...body,
       createTime: moment().format('YYYY-MM-DD HH:mm:ss'),
