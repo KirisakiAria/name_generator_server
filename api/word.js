@@ -10,6 +10,7 @@ const JWT = require('../utils/jwt')
 const ChineseWordModel = require('../model/ChineseWord')
 const JapaneseWordModel = require('../model/JapaneseWord')
 const CuteWordModel = require('../model/CuteWord')
+const ShadiaoWordModel = require('../model/ShadiaoWord')
 const WordDictionary = require('../model/WordDictionary')
 const UserModel = require('../model/User')
 const CoupleModel = require('../model/Couple')
@@ -20,12 +21,17 @@ const {
 } = require('../utils/verify')
 
 const selectModel = type => {
-  if (type == '中国风') {
-    return ChineseWordModel
-  } else if (type == '日式') {
-    return JapaneseWordModel
-  } else if (type == '可爱') {
-    return CuteWordModel
+  switch (type) {
+    case '中国风':
+      return ChineseWordModel
+    case '日式':
+      return JapaneseWordModel
+    case '可爱':
+      return CuteWordModel
+    case '沙雕':
+      return ShadiaoWordModel
+    default:
+      return ChineseWordModel
   }
 }
 
@@ -43,7 +49,7 @@ const findRandomCouplesWord = async (count, condition) => {
 
 router.post('/random', verifyAppBaseInfo, async ctx => {
   try {
-    const { type, length, ifRomaji, couples } = ctx.request.body
+    const { type, length, ifRomaji, random, couples } = ctx.request.body
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
     let condition
