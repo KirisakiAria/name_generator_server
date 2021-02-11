@@ -58,10 +58,8 @@ const findRandomCombinationsWord = async (Model, condition) => {
       length: 1,
       showable: true,
     }).skip(randomIndex)
-    console.log(singleWordData)
     word += singleWordData.word
     i++
-    console.log(word)
   }
   const data = {
     _id: '',
@@ -190,6 +188,12 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
       const Model = selectModel(type)
       //完全随机组合
       if (randomCombinations) {
+        if (type !== '中国风') {
+          return (ctx.body = {
+            code: '2004',
+            message: '暂时只有中国风可以使用完全随机组合',
+          })
+        }
         data = await findRandomCombinationsWord(Model, condition)
       } else {
         count = await Model.find(condition).countDocuments()
