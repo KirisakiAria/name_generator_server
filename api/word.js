@@ -181,7 +181,7 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
         }
       }
       let threshold = 50 //防止查词重复（阈值50）
-      if (type == '沙雕' || type == '英文') {
+      if (condition.length >= 8 || type == '英文') {
         ctx.session.words = []
       }
       let data, count
