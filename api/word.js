@@ -10,7 +10,7 @@ const JWT = require('../utils/jwt')
 const ChineseWordModel = require('../model/ChineseWord')
 const JapaneseWordModel = require('../model/JapaneseWord')
 const CuteWordModel = require('../model/CuteWord')
-const ShadiaoWordModel = require('../model/ShadiaoWord')
+const EnglishWordModel = require('../model/EnglishWord')
 const WordDictionary = require('../model/WordDictionary')
 const UserModel = require('../model/User')
 const CoupleModel = require('../model/Couple')
@@ -28,10 +28,10 @@ const selectModel = type => {
       return JapaneseWordModel
     case '可爱':
       return CuteWordModel
-    case '沙雕':
-      return ShadiaoWordModel
+    case '英文':
+      return EnglishWordModel
     default:
-      return ChineseWordModel
+      return CuteWordModel
   }
 }
 
@@ -47,9 +47,39 @@ const findRandomCouplesWord = async (count, condition) => {
   return data
 }
 
+//完全随机组合
+const findRandomCombinationsWord = async (Model, condition) => {
+  const count = await Model.find({ length: 1, showable: true }).countDocuments()
+  let word = ''
+  let i = 1
+  while (i <= condition.length) {
+    const randomIndex = Math.floor(Math.random() * count)
+    let singleWordData = await Model.findOne({
+      length: 1,
+      showable: true,
+    }).skip(randomIndex)
+    console.log(singleWordData)
+    word += singleWordData.word
+    i++
+    console.log(word)
+  }
+  const data = {
+    _id: '',
+    word,
+    likedUsers: [],
+  }
+  return data
+}
+
 router.post('/random', verifyAppBaseInfo, async ctx => {
   try {
-    const { type, length, ifRomaji, random, couples } = ctx.request.body
+    const {
+      type,
+      length,
+      ifRomaji,
+      randomCombinations,
+      couples,
+    } = ctx.request.body
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
     let condition
@@ -153,12 +183,18 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
         }
       }
       let threshold = 50 //防止查词重复（阈值50）
-      // if (type == '可爱') {
-      //   ctx.session.words = []
-      // }
+      if (type == '沙雕' || type == '英文') {
+        ctx.session.words = []
+      }
+      let data, count
       const Model = selectModel(type)
-      const count = await Model.find(condition).countDocuments()
-      let data = await findRandomWord(Model, count, condition)
+      //完全随机组合
+      if (randomCombinations) {
+        data = await findRandomCombinationsWord(Model, condition)
+      } else {
+        count = await Model.find(condition).countDocuments()
+        data = await findRandomWord(Model, count, condition)
+      }
       if (!data) {
         return (ctx.body = {
           code: '2004',
@@ -166,7 +202,11 @@ router.post('/random', verifyAppBaseInfo, async ctx => {
         })
       }
       while (ctx.session.words && ctx.session.words.includes(data.word)) {
-        data = await findRandomWord(Model, count, condition)
+        if (randomCombinations) {
+          data = await findRandomCombinationsWord(Model, condition)
+        } else {
+          data = await findRandomWord(Model, count, condition)
+        }
       }
       if (ctx.session.words) {
         ctx.session.words.push(data.word)

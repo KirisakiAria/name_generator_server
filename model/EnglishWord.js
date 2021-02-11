@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
-const ShadiaoWordSchema = new Schema({
+const EnglishWordSchema = new Schema({
   word: String,
   length: Number,
   classify: String,
@@ -9,6 +9,6 @@ const ShadiaoWordSchema = new Schema({
   likedUsers: [String],
 })
 
-const ShadiaoWord = mongoose.model('ShadiaoWord', ShadiaoWordSchema)
+const EnglishWord = mongoose.model('EnglishWord', EnglishWordSchema)
 
-module.exports = ShadiaoWord
+module.exports = EnglishWord
