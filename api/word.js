@@ -52,6 +52,9 @@ const findRandomCombinationsWord = async (Model, condition) => {
   const count = await Model.find({ length: 1, showable: true }).countDocuments()
   let word = ''
   let i = 1
+  if (!condition.length) {
+    condition.length = Math.ceil(Math.random() * 7)
+  }
   while (i <= condition.length) {
     const randomIndex = Math.floor(Math.random() * count)
     let singleWordData = await Model.findOne({
