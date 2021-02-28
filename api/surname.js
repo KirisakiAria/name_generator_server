@@ -3,11 +3,11 @@ const Router = require('@koa/router')
 const moment = require('moment')
 const SurnameModel = require('../model/Surname')
 const JWT = require('../utils/jwt')
-const { verifyAdminLogin, verifyLogin } = require('../utils/verify')
+const { verifyAdminLogin } = require('../utils/verify')
 
 const router = new Router({ prefix: '/surname' })
 
-router.get('/', verifyLogin, async ctx => {
+router.get('/', async ctx => {
   try {
     const { searchContent, pageSize, currentPage } = ctx.request.query
     const pattern = new RegExp(searchContent, 'i')
@@ -15,7 +15,9 @@ router.get('/', verifyLogin, async ctx => {
       .sort({ _id: -1 })
       .skip(parseInt(pageSize) * parseInt(currentPage))
       .limit(parseInt(pageSize))
-    const total = await SurnameModel.find({ surname: pattern }).countDocuments()
+    const total = await SurnameModel.find({
+      surname: pattern,
+    }).countDocuments()
     ctx.body = {
       code: '1000',
       message: '请求成功',
