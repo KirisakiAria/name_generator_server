@@ -628,7 +628,7 @@ router.post('/', verifyAdminLogin, async ctx => {
       const count = await UserModel.countDocuments()
       const newUser = new UserModel({
         uid: count + 1,
-        avatar,
+        avatar: avatar ? avatar : '/avatar/avatar.png',
         tel,
         username,
         password: encrypt(password),
