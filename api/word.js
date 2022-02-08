@@ -1053,7 +1053,6 @@ router.post('/couples/upload', verifyAdminLogin, async ctx => {
         }
       }
     })()
-    const jwt = new JWT(ctx.request.header.authorization)
     ctx.body = {
       code: '1000',
       message: '上传成功',

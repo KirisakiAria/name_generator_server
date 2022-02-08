@@ -1,15 +1,16 @@
 const multer = require('@koa/multer')
+const path = require('path')
 const storage = multer.diskStorage({
   //定义文件保存路径
   destination(req, file, cb) {
-    let path = './public/others'
+    let filePath = '../public/others'
     const fileType = file.mimetype
     if (fileType.includes('image') || fileType.includes('application')) {
-      path = './public/avatar'
+      filePath = '../public/avatar'
     } else if (fileType.includes('text')) {
-      path = './public/text'
+      filePath = '../public/text'
     }
-    cb(null, path) //路径根据具体而定。如果不存在的话会自动创建一个路径
+    cb(null, path.join(__dirname, filePath)) //路径根据具体而定。如果不存在的话会自动创建一个路径
   },
   //文件名
   filename(req, file, cb) {

@@ -8,7 +8,7 @@ router.post('/', verifyLogin, upload.single('file'), ctx => {
     code: '1000',
     message: '上传成功',
     data: {
-      path: ctx.file.path.replace('public\\', '/').replace('public/', '/'),
+      path: `/avatar/${ctx.file.filename}`,
     },
   }
 })
