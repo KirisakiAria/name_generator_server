@@ -9,14 +9,7 @@ const { verifyAppBaseInfo } = require('../utils/verify')
 
 const sendCode = (templateId, tel, ctx) => {
   return new Promise((resolve, reject) => {
-    const writerStream = fs.createWriteStream(process.cwd() + '/logs/sms.log', {
-      flags: 'a',
-    })
-    writerStream.on('error', err => {
-      console.log(err.stack)
-    })
     const clientIp = ctx.req.connection.remoteAddress
-
     const appid = 1400425828 // SDK AppID 以1400开头
     const appkey = 'aab3680f5e430c6ebfbab11460ced5ad' // 短信应用 SDK AppKey
     // 签名
@@ -37,10 +30,6 @@ const sendCode = (templateId, tel, ctx) => {
         if (err) {
           reject(err)
         } else {
-          writerStream.write(
-            `手机号：${tel} IP：${clientIp} 请求了验证码，验证码为：${code}\n`,
-            'UTF8',
-          )
           const smsDoc = await SMSModel.findOne({ tel })
           if (smsDoc) {
             const result = await SMSModel.updateOne(

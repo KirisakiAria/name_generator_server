@@ -677,12 +677,6 @@ router.put('/:id', verifyAdminLogin, async ctx => {
 
 router.post('/upload', verifyAdminLogin, async ctx => {
   try {
-    const writerStream = fs.createWriteStream(
-      process.cwd() + '/logs/word_upload.log',
-      {
-        flags: 'a',
-      },
-    )
     const clientIp = ctx.req.connection.remoteAddress
     const { type, path, showable } = ctx.request.body
     const Model = selectModel(type)
@@ -717,13 +711,6 @@ router.post('/upload', verifyAdminLogin, async ctx => {
     })()
     const jwt = new JWT(ctx.request.header.authorization)
     const res = jwt.verifyToken()
-    writerStream.write(
-      `用户：${res.user} IP：${clientIp} 在${moment().format(
-        'YYYY-MM-DD HH:mm:ss',
-      )}上传了${arr.length}个词语，上传成功${progress}个\n`,
-      'UTF8',
-    )
-    writerStream.end()
     ctx.body = {
       code: '1000',
       message: '上传成功',
@@ -1026,12 +1013,6 @@ router.put('/couples/:id', verifyAdminLogin, async ctx => {
 
 router.post('/couples/upload', verifyAdminLogin, async ctx => {
   try {
-    const writerStream = fs.createWriteStream(
-      process.cwd() + '/logs/couples_upload.log',
-      {
-        flags: 'a',
-      },
-    )
     const clientIp = ctx.req.connection.remoteAddress
     const { type, path, showable } = ctx.request.body
     const data = await loadFile(path)
@@ -1073,14 +1054,6 @@ router.post('/couples/upload', verifyAdminLogin, async ctx => {
       }
     })()
     const jwt = new JWT(ctx.request.header.authorization)
-    const res = jwt.verifyToken()
-    writerStream.write(
-      `用户：${res.user} IP：${clientIp} 在${moment().format(
-        'YYYY-MM-DD HH:mm:ss',
-      )}上传了${arr.length}个情侣词，上传成功${progress / 2}对\n`,
-      'UTF8',
-    )
-    writerStream.end()
     ctx.body = {
       code: '1000',
       message: '上传成功',

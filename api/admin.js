@@ -9,16 +9,6 @@ const encrypt = require('../utils/encryption')
 
 router.post('/login', async ctx => {
   try {
-    const writerStream = fs.createWriteStream(
-      process.cwd() + '/logs/admin.log',
-      {
-        flags: 'a',
-      },
-    )
-    writerStream.on('error', err => {
-      console.log(err.stack)
-    })
-
     const clientIp = ctx.req.connection.remoteAddress
     const { username, password, authCode } = ctx.request.body
     const user = await AdminModel.findOne({ username })
@@ -40,12 +30,6 @@ router.post('/login', async ctx => {
           role: 1,
         })
         const token = jwt.generateToken()
-        writerStream.write(
-          `用户：${username} IP：${clientIp} 在${moment().format(
-            'YYYY-MM-DD HH:mm:ss',
-          )}登录后台\n`,
-          'UTF8',
-        )
         ctx.body = {
           code: '1000',
           message: '请求成功',

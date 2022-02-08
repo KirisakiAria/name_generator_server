@@ -185,16 +185,6 @@ router.post('/getdata', verifyAppBaseInfo, verifyUserLogin, async ctx => {
 
 router.post('/changepassword', verifyAppBaseInfo, async ctx => {
   try {
-    const writerStream = fs.createWriteStream(
-      process.cwd() + '/logs/change_password.log',
-      {
-        flags: 'a',
-      },
-    )
-
-    writerStream.on('error', err => {
-      console.log(err.stack)
-    })
     const clientIp = ctx.req.connection.remoteAddress
     const { tel, password, authCode } = ctx.request.body
     const userDoc = await UserModel.findOne({ tel })
@@ -221,13 +211,6 @@ router.post('/changepassword', verifyAppBaseInfo, async ctx => {
           { $set: { password: encrypt(password) } },
         )
         if (result.ok == 1 && result.nModified == 1) {
-          writerStream.write(
-            `用户：${tel} IP：${clientIp} 在${moment().format(
-              'YYYY-MM-DD HH:mm:ss',
-            )} 修改密码\n`,
-            'UTF8',
-          )
-          writerStream.end()
           ctx.body = {
             code: '1000',
             message: '修改成功',
@@ -682,26 +665,10 @@ router.put('/:id', verifyAdminLogin, async ctx => {
 
 router.delete('/:id', verifyAdminLogin, async ctx => {
   try {
-    const writerStream = fs.createWriteStream(
-      process.cwd() + '/logs/user_delete.log',
-      {
-        flags: 'a',
-      },
-    )
-    writerStream.on('error', err => {
-      console.log(err.stack)
-    })
     const clientIp = ctx.req.connection.remoteAddress
     const { tel } = ctx.request.query
     const result = await UserModel.deleteOne({ _id: ctx.params.id })
     if (result.ok == 1 && result.deletedCount == 1) {
-      writerStream.write(
-        `用户：${tel} IP：${clientIp} 在${moment().format(
-          'YYYY-MM-DD HH:mm:ss',
-        )} 被删除\n`,
-        'UTF8',
-      )
-      writerStream.end()
       ctx.body = {
         code: '1000',
         message: '删除成功',
