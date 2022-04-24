@@ -109,7 +109,7 @@ router.get('/vip', async ctx => {
   }
 })
 
-router.get('/cdk', async ctx => {
+router.get('/key', async ctx => {
   try {
     const data = await ServiceModel.find()
     ctx.body = {
