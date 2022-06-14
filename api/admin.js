@@ -1,5 +1,3 @@
-const fs = require('fs')
-const moment = require('moment')
 const speakeasy = require('speakeasy')
 const JWT = require('../utils/jwt')
 const Router = require('@koa/router')
@@ -9,7 +7,6 @@ const encrypt = require('../utils/encryption')
 
 router.post('/login', async ctx => {
   try {
-    const clientIp = ctx.req.connection.remoteAddress
     const { username, password, authCode } = ctx.request.body
     const user = await AdminModel.findOne({ username })
     if (user) {

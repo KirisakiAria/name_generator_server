@@ -185,7 +185,6 @@ router.post('/getdata', verifyAppBaseInfo, verifyUserLogin, async ctx => {
 
 router.post('/changepassword', verifyAppBaseInfo, async ctx => {
   try {
-    const clientIp = ctx.req.connection.remoteAddress
     const { tel, password, authCode } = ctx.request.body
     const userDoc = await UserModel.findOne({ tel })
     if (!userDoc) {
@@ -665,8 +664,6 @@ router.put('/:id', verifyAdminLogin, async ctx => {
 
 router.delete('/:id', verifyAdminLogin, async ctx => {
   try {
-    const clientIp = ctx.req.connection.remoteAddress
-    const { tel } = ctx.request.query
     const result = await UserModel.deleteOne({ _id: ctx.params.id })
     if (result.ok == 1 && result.deletedCount == 1) {
       ctx.body = {
@@ -806,11 +803,14 @@ router.post('/pay/success', verifyAppBaseInfo, verifyUserLogin, async ctx => {
     if (res.user === tel) {
       const user = await UserModel.findOne({ tel })
       if (user) {
-        user.vip = true
-        user.vipStartTime = Date.now()
-        const vipStartTime = user.vipEndTime
-          ? user.vipEndTime
-          : user.vipStartTime
+        const now = Date.now()
+        if (!user.vip) {
+          user.vipStartTime = now
+        }
+        let vipStartTime = now
+        if (user.vipEndTime > now) {
+          vipStartTime = user.vipEndTime
+        }
         switch (planId) {
           case '1':
             user.vipEndTime = vipStartTime + 2678400000
@@ -828,6 +828,7 @@ router.post('/pay/success', verifyAppBaseInfo, verifyUserLogin, async ctx => {
             user.vipEndTime = -1
             break
         }
+        user.vip = true
         await user.save()
         const order = await OrderModel.findOne({ orderNo })
         order.status = true
@@ -846,6 +847,57 @@ router.post('/pay/success', verifyAppBaseInfo, verifyUserLogin, async ctx => {
       ctx.body = {
         code: '3007',
         message: '登录状态失效，请重新登录',
+      }
+    }
+  } catch (err) {
+    console.log(err)
+    ctx.body = {
+      code: '9000',
+      message: '请求错误',
+    }
+  }
+})
+
+router.post('/pay/simulation', verifyAdminLogin, async ctx => {
+  try {
+    const { tel, planId } = ctx.request.body
+    const user = await UserModel.findOne({ tel })
+    if (user) {
+      const now = Date.now()
+      if (!user.vip) {
+        user.vipStartTime = now
+      }
+      let vipStartTime = now
+      if (user.vipEndTime > now) {
+        vipStartTime = user.vipEndTime
+      }
+      switch (planId) {
+        case '1':
+          user.vipEndTime = vipStartTime + 2678400000
+          break
+        case '2':
+          user.vipEndTime = vipStartTime + 8035200000
+          break
+        case '3':
+          user.vipEndTime = vipStartTime + 16070400000
+          break
+        case '4':
+          user.vipEndTime = vipStartTime + 31536000000
+          break
+        case '5':
+          user.vipEndTime = -1
+          break
+      }
+      user.vip = true
+      await user.save()
+      ctx.body = {
+        code: '1000',
+        message: '支付成功',
+      }
+    } else {
+      ctx.body = {
+        code: '3008',
+        message: '无此用户信息，请重新登录',
       }
     }
   } catch (err) {
