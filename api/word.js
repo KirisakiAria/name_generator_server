@@ -1,5 +1,4 @@
 const fs = require('fs')
-const moment = require('moment')
 const zlib = require('zlib')
 const axios = require('axios')
 const parser = require('fast-xml-parser')
@@ -677,7 +676,6 @@ router.put('/:id', verifyAdminLogin, async ctx => {
 
 router.post('/upload', verifyAdminLogin, async ctx => {
   try {
-    const clientIp = ctx.req.connection.remoteAddress
     const { type, path, showable } = ctx.request.body
     const Model = selectModel(type)
     const data = await loadFile(path)
@@ -709,8 +707,6 @@ router.post('/upload', verifyAdminLogin, async ctx => {
         }
       }
     })()
-    const jwt = new JWT(ctx.request.header.authorization)
-    const res = jwt.verifyToken()
     ctx.body = {
       code: '1000',
       message: '上传成功',
@@ -1013,7 +1009,6 @@ router.put('/couples/:id', verifyAdminLogin, async ctx => {
 
 router.post('/couples/upload', verifyAdminLogin, async ctx => {
   try {
-    const clientIp = ctx.req.connection.remoteAddress
     const { type, path, showable } = ctx.request.body
     const data = await loadFile(path)
     const arr = assemble(unique(data.split(',')), 2)
