@@ -706,8 +706,9 @@ router.post('/pay', verifyAppBaseInfo, verifyUserLogin, async ctx => {
               path.resolve(__dirname, '../pay/pem/private_key.pem'),
               'utf-8',
             ),
+            encryptKey: 'umRz1SznYX9juNDLhkEDig==',
             alipayPublicKey:
-              'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwwg4dLRqOqiTVs/IjUZUqggMRK6vdkPKQxTZVeklFhDwufY8ut4W2SQBnJyi7+A3HKAI7PxZfB7qFam4OkyVVjog2KWYVM6Gyuz8l5Uzn+SPL/jCl6N+zpka199WCA/wm4sCtjQte4vShrLJoyOwXOC08h4uuzXx/7sjHRZSk1XCHznIKa+ZnZmYx1tpx+FFfLvBHHErvNcJ3qS+46H4hOrfhFMPqvfWTc0YBEj2//IzsafP3x8o10q++3A/BhU4WBps3R6xOkuIr6chhYC3XS0VpO6+hzajdkxS1F+zjnFbInpECMhOxClIJ6QEKh5swFDElz+2EoCZ5kKNvvKOsQIDAQAB',
+              'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsfffuAp1WQFziG077Fjy1BrDxY5enQUtM4DhRrEBDbqg8N6OMK65Q0Qif4vfJcml37AD2KcsG+wtfEhdsbAvNBl7mP2A4ufBkBBP4EcHA38LOG5D9wwZLrr2UH32Uvvfk/LmRzSCnh3qcSvhSm7eSRWeaSjt+gz2uxtrGjZolVQ4OfaUdazhUanvsDHFfIFpUHoBD8x8wnI9slILwYb5IMqHHzKIS2edQT1ZYelXYdgAesaPOnYDWFNeP3hqGH2jTPfjnJas+PMZksRpqnXWuWrBQVpaxHagEBIkYxIG3usZQLba1TYvPwjmQRbeVZF45VOJl3YQRrxfZFbc5LLYUQIDAQAB',
             alipayRootCertPath: path.resolve(
               __dirname,
               '../pay/crt/alipayRootCert.crt',
